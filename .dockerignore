@@ -1,0 +1,15 @@
+node_modules
+*/node_modules
+server/dist
+client/dist
+data
+.claude
+tasks
+migration scripts
+*.db
+*.db-shm
+*.db-wal
+.env
+.git
+.gitignore
+README.md
