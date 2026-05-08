@@ -1,0 +1,26 @@
+{
+  "name": "applyr",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client && npm run build -w server",
+    "start": "NODE_ENV=production node server/dist/index.js",
+    "setup": "npm install",
+    "test": "vitest run --config tests/vitest.config.ts",
+    "test:watch": "vitest --config tests/vitest.config.ts",
+    "deadcode": "knip"
+  },
+  "devDependencies": {
+    "@types/supertest": "^7.2.0",
+    "concurrently": "^8.2.2",
+    "knip": "^6.4.1",
+    "supertest": "^7.2.2",
+    "vite": "^8.0.8",
+    "vitest": "^4.1.4"
+  }
+}
