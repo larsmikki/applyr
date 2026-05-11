@@ -32,7 +32,7 @@ function CompanyMark({ company, size = 36 }: { company: string; size?: number })
   return (
     <div
       className="rounded-lg flex items-center justify-center flex-shrink-0 text-white font-semibold"
-      style={{ width: size, height: size, background: '#9ca3af' /* companyColor(company) */, fontSize: Math.round(size * 0.42) }}
+      style={{ width: size, height: size, background: companyColor(company), fontSize: Math.round(size * 0.42) }}
     >
       {company.charAt(0).toUpperCase()}
     </div>
@@ -41,6 +41,12 @@ function CompanyMark({ company, size = 36 }: { company: string; size?: number })
 
 const PIPELINE_STAGES = ['draft', 'applied', 'interview', 'offer'] as const;
 const STAGE_LABELS: Record<string, string> = { draft: 'Draft', applied: 'Applied', interview: 'Interview', offer: 'Offer' };
+const STAGE_COLORS: Record<string, string> = {
+  draft: '#9ca3af',
+  applied: '#3b82f6',
+  interview: '#a855f7',
+  offer: '#22c55e',
+};
 
 function PipelineFunnel({ byStatus }: { byStatus: Record<string, number> }) {
   const counts = PIPELINE_STAGES.map(s => ({ stage: s, count: byStatus[s] || 0 }));
@@ -55,8 +61,8 @@ function PipelineFunnel({ byStatus }: { byStatus: Record<string, number> }) {
             <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">{STAGE_LABELS[stage]}</span>
             <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gray-400 dark:bg-gray-500 rounded-full transition-all duration-500"
-                style={{ width: `${pct}%` }}
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${pct}%`, background: STAGE_COLORS[stage] }}
               />
             </div>
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300 text-right tabular-nums">{count}</span>
@@ -99,7 +105,7 @@ function AppRow({ app }: { app: Application }) {
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
         {app.fit_score !== undefined && app.fit_score !== null && (
-          <FitScoreRing score={app.fit_score} size={32} grey />
+          <FitScoreRing score={app.fit_score} size={32} />
         )}
         <span className="text-xs text-gray-400 dark:text-gray-500 w-20 text-right">
           {new Date(app.created_at).toLocaleDateString()}
@@ -257,8 +263,8 @@ export default function FrontPage() {
                       <span className="text-sm text-gray-700 dark:text-gray-300 w-32 truncate flex-shrink-0">{company}</span>
                       <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                         <div
-                          className="bg-gray-400 dark:bg-gray-500 h-2 rounded-full"
-                          style={{ width: `${(count / max) * 100}%` }}
+                          className="h-2 rounded-full"
+                          style={{ width: `${(count / max) * 100}%`, background: companyColor(company) }}
                         />
                       </div>
                       <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-4 text-right flex-shrink-0">{count}</span>

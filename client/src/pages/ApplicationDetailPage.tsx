@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Trash2, FolderOpen, Wand2, Loader2, AlertCircle,
   Clock, FileText, BarChart, History, ChevronDown, Play, RefreshCw,
-  BookOpen, Copy, Printer, Plus, Pencil, X, Check, MessageCircle
+  BookOpen, Copy, Printer, Plus, Pencil, X, Check, MessageCircle, Link as LinkIcon
 } from 'lucide-react';
 import { getApplication, updateApplication, deleteApplication, getApplicationVersions, getVaultDocuments, regenerateOdt, getInterviewPrep, generateInterviewPrep, updateInterviewPrepNotes, getApplicationNotes, createApplicationNote, updateApplicationNote, deleteApplicationNote } from '@/api';
 import type { Application, ApplicationNote, GenerationLog, VaultDocument, InterviewPrep, InterviewPrepQuestion, InterviewPrepQuestionToAsk } from '@/types';
 import StatusBadge from '@/components/StatusBadge';
 import FitScoreGauge from '@/components/FitScoreGauge';
+import FitScoreRing from '@/components/FitScoreRing';
 import MarkdownPreview from '@/components/MarkdownPreview';
 import StreamingText from '@/components/StreamingText';
 import { useStream } from '@/hooks/useStream';
@@ -20,6 +21,94 @@ import Modal from '@/components/Modal';
 type Tab = 'cover_letter' | 'job_description' | 'analysis' | 'history' | 'prep';
 
 const STATUS_OPTIONS = ['draft', 'applied', 'interview', 'offer', 'rejected', 'withdrawn'];
+
+function companyColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `oklch(0.55 0.14 ${hue})`;
+}
+
+const TIMELINE_STAGES = ['draft', 'applied', 'interview', 'offer'] as const;
+const TIMELINE_LABELS: Record<string, string> = {
+  draft: 'Drafted', applied: 'Applied', interview: 'Interview', offer: 'Offer',
+};
+
+function formatShortDate(ts?: number): string {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function ApplicationTimeline({ app }: { app: Application }) {
+  const { theme } = useTheme();
+  const statusIdx = TIMELINE_STAGES.indexOf(app.status as typeof TIMELINE_STAGES[number]);
+  const currentIdx = statusIdx >= 0 ? statusIdx : 0;
+
+  const stageDate = (stage: typeof TIMELINE_STAGES[number], idx: number): number | undefined => {
+    if (idx > currentIdx) return undefined;
+    if (stage === 'draft') return app.created_at;
+    if (stage === 'applied') return app.applied_at;
+    if (idx === currentIdx) return app.updated_at;
+    return undefined;
+  };
+
+  const dayCount = Math.max(0, Math.round((app.updated_at - app.created_at) / 86400000));
+  const accent = theme.accent || '#a855f7';
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Timeline</span>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-medium">
+          {dayCount} {dayCount === 1 ? 'day' : 'days'}
+        </span>
+      </div>
+      <div className="flex items-start">
+        {TIMELINE_STAGES.map((stage, idx) => {
+          const reached = idx <= currentIdx;
+          const isCurrent = idx === currentIdx;
+          const date = stageDate(stage, idx);
+          return (
+            <div key={stage} className="flex-1 flex flex-col items-start min-w-0 relative">
+              <div className="flex items-center w-full">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 z-10"
+                  style={{
+                    background: reached ? accent : 'transparent',
+                    border: reached ? 'none' : `2px solid ${theme.border}`,
+                  }}
+                >
+                  {reached && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
+                </div>
+                {idx < TIMELINE_STAGES.length - 1 && (
+                  <div
+                    className="flex-1 h-0.5"
+                    style={{ background: idx < currentIdx ? accent : theme.border }}
+                  />
+                )}
+              </div>
+              <div className="mt-2 pr-2">
+                <p
+                  className="text-sm font-medium"
+                  style={{
+                    color: isCurrent ? accent : reached ? theme.text : theme.text2,
+                  }}
+                >
+                  {TIMELINE_LABELS[stage]}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: theme.text2 }}>
+                  {formatShortDate(date)}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function HistoryTab({ logs }: { logs: GenerationLog[] }) {
   const { theme } = useTheme();
@@ -126,6 +215,7 @@ export default function ApplicationDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [regeneratingOdt, setRegeneratingOdt] = useState(false);
   const [refineInstruction, setRefineInstruction] = useState('');
+  const [refineOpen, setRefineOpen] = useState(false);
   const [cvDocuments, setCvDocuments] = useState<VaultDocument[]>([]);
   const [selectedCvId, setSelectedCvId] = useState('');
 
@@ -422,51 +512,71 @@ export default function ApplicationDetailPage() {
     <div className="p-8 max-w-5xl mx-auto">
       <ToastStack toasts={toasts} onRemove={removeToast} />
 
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-6">
+      {/* Breadcrumb */}
+      <div className="mb-3 flex items-center gap-2 text-xs">
         <button
           onClick={() => navigate('/history')}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mt-1"
+          className="flex items-center gap-1 hover:underline"
+          style={{ color: theme.text2 }}
         >
-          <ArrowLeft className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          <ArrowLeft className="w-3 h-3" /> Applications
         </button>
+        <span style={{ color: theme.text2 }}>/</span>
+        <span style={{ color: theme.text2 }} className="truncate">{app.company} · {app.role}</span>
+      </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>{app.company}</h1>
-            <div className="relative inline-flex items-center">
-              <select
-                value={app.status}
-                onChange={e => handleStatusChange(e.target.value)}
-                className="appearance-none pl-2.5 pr-7 py-0.5 rounded-full text-xs font-medium cursor-pointer border-0 focus:ring-2 focus:ring-primary-500"
-                style={{
-                  backgroundColor: 'transparent',
-                  color: 'inherit',
-                }}
-              >
-                {STATUS_OPTIONS.map(s => (
-                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-                ))}
-              </select>
-              <StatusBadge status={app.status} className="pointer-events-none absolute inset-0" />
-              <ChevronDown className="pointer-events-none absolute right-1.5 w-3 h-3 opacity-60" />
-            </div>
+      {/* Header card */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
+        <div className="flex items-start gap-4">
+          <div
+            className="rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold"
+            style={{
+              width: 56, height: 56,
+              background: companyColor(app.company),
+              fontSize: 24,
+            }}
+          >
+            {app.company.charAt(0).toUpperCase()}
           </div>
-          <p className="text-gray-600 dark:text-gray-400 mt-0.5">{app.role}</p>
-          {app.job_url && (
-            <a href={app.job_url} target="_blank" rel="noopener noreferrer"
-              className="text-xs text-primary-600 dark:text-primary-400 hover:underline mt-0.5 inline-block truncate max-w-md">
-              {app.job_url}
-            </a>
-          )}
-        </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {app.fit_score !== undefined && app.fit_score !== null && (
-            <FitScoreGauge score={app.fit_score} size={80} />
-          )}
-          <div className="flex gap-2">
-              <button
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-extrabold tracking-tight truncate" style={{ color: theme.text }}>
+                {app.company}
+              </h1>
+              <div className="relative inline-flex items-center">
+                <select
+                  value={app.status}
+                  onChange={e => handleStatusChange(e.target.value)}
+                  className="appearance-none pl-2.5 pr-7 py-0.5 rounded-full text-xs font-medium cursor-pointer border-0 focus:ring-2 focus:ring-primary-500"
+                  style={{ backgroundColor: 'transparent', color: 'inherit' }}
+                >
+                  {STATUS_OPTIONS.map(s => (
+                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                  ))}
+                </select>
+                <StatusBadge status={app.status} className="pointer-events-none absolute inset-0" />
+                <ChevronDown className="pointer-events-none absolute right-1.5 w-3 h-3 opacity-60" />
+              </div>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mt-0.5">{app.role}</p>
+            {app.job_url && (
+              <a
+                href={app.job_url} target="_blank" rel="noopener noreferrer"
+                className="text-xs hover:underline mt-1 inline-flex items-center gap-1 truncate max-w-md"
+                style={{ color: theme.accent }}
+              >
+                <LinkIcon className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{app.job_url}</span>
+              </a>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {app.fit_score !== undefined && app.fit_score !== null && (
+              <FitScoreRing score={app.fit_score} size={64} />
+            )}
+            <button
               onClick={handleDelete}
               disabled={deleting}
               className="btn-danger flex items-center gap-2 text-sm"
@@ -477,113 +587,8 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
-      {/* Notes */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <span className="label mb-0">Notes</span>
-          <button
-            onClick={() => { setNoteFormOpen(v => !v); setNoteForm({ headline: '', body: '' }); }}
-            className="btn-secondary text-xs flex items-center gap-1 py-1"
-          >
-            <Plus className="w-3.5 h-3.5" /> Add note
-          </button>
-        </div>
-
-        {noteFormOpen && (
-          <div className="mb-4 p-3 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 space-y-2">
-            <input
-              type="text"
-              value={noteForm.headline}
-              onChange={e => setNoteForm(f => ({ ...f, headline: e.target.value }))}
-              placeholder="Headline"
-              className="input w-full text-sm font-medium"
-              autoFocus={noteFormOpen}
-            />
-            <textarea
-              value={noteForm.body}
-              onChange={e => setNoteForm(f => ({ ...f, body: e.target.value }))}
-              placeholder="Note text (optional)"
-              rows={3}
-              className="input w-full text-sm resize-y"
-            />
-            <div className="flex gap-2 justify-end">
-              {noteFormOpen && (
-                <button onClick={() => setNoteFormOpen(false)} className="btn-secondary text-xs py-1">Cancel</button>
-              )}
-              <button
-                onClick={handleCreateNote}
-                disabled={noteSaving || !noteForm.headline.trim()}
-                className="btn-primary text-xs py-1 flex items-center gap-1"
-              >
-                {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                Save
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {notes.length === 0 && !noteFormOpen && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-2">No notes yet — click "Add note" to get started.</p>
-          )}
-          {notes.map(note => (
-            <div key={note.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-              {editingNote?.id === note.id ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={editForm.headline}
-                    onChange={e => setEditForm(f => ({ ...f, headline: e.target.value }))}
-                    className="input w-full text-sm font-medium"
-                    autoFocus
-                  />
-                  <textarea
-                    value={editForm.body}
-                    onChange={e => setEditForm(f => ({ ...f, body: e.target.value }))}
-                    rows={3}
-                    className="input w-full text-sm resize-y"
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <button onClick={() => setEditingNote(null)} className="btn-secondary text-xs py-1">Cancel</button>
-                    <button
-                      onClick={handleUpdateNote}
-                      disabled={noteSaving || !editForm.headline.trim()}
-                      className="btn-primary text-xs py-1 flex items-center gap-1"
-                    >
-                      {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                      Save
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{note.headline}</p>
-                    {note.body && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 whitespace-pre-wrap">{note.body}</p>}
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{new Date(note.created_at).toLocaleString()}</p>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button
-                      onClick={() => { setEditingNote(note); setEditForm({ headline: note.headline, body: note.body }); }}
-                      className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      title="Edit"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteNote(note.id)}
-                      className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      title="Delete"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Timeline */}
+      <ApplicationTimeline app={app} />
 
       {/* Status selector (inline, clean) */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
@@ -635,7 +640,7 @@ export default function ApplicationDetailPage() {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
                       <label className="label mb-0">Version:</label>
                       <select
@@ -650,17 +655,25 @@ export default function ApplicationDetailPage() {
                         ))}
                       </select>
                     </div>
-                    <button
-                      onClick={handleRegenerateOdt}
-                      disabled={regeneratingOdt}
-                      className="btn-secondary flex items-center gap-2 text-sm"
-                      title="Re-create ODT, PDF and copy attachments from the latest cover letter version"
-                    >
-                      {regeneratingOdt
-                        ? <Loader2 className="w-4 h-4 animate-spin" />
-                        : <RefreshCw className="w-4 h-4" />}
-                      Recreate Output Files
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setRefineOpen(v => !v)}
+                        className="btn-secondary flex items-center gap-2 text-sm"
+                      >
+                        <Wand2 className="w-4 h-4" /> Refine
+                      </button>
+                      <button
+                        onClick={handleRegenerateOdt}
+                        disabled={regeneratingOdt}
+                        className="btn-secondary flex items-center gap-2 text-sm"
+                        title="Re-create ODT, PDF and copy attachments from the latest cover letter version"
+                      >
+                        {regeneratingOdt
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <RefreshCw className="w-4 h-4" />}
+                        Recreate Output Files
+                      </button>
+                    </div>
                   </div>
 
                   {selectedLog && (
@@ -669,45 +682,55 @@ export default function ApplicationDetailPage() {
                     </div>
                   )}
 
-                  {/* Refinement */}
-                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <Wand2 className="w-4 h-4 text-primary-500" />
-                      Refine this letter
-                    </h3>
-                    <textarea
-                      placeholder="Make it more concise, add more emphasis on leadership, change the opening hook..."
-                      value={refineInstruction}
-                      onChange={e => setRefineInstruction(e.target.value)}
-                      rows={3}
-                      className="input resize-y"
-                    />
-
-                    <button
-                      onClick={handleRefine}
-                      disabled={!refineInstruction.trim() || refineStream.loading}
-                      className="btn-primary flex items-center gap-2"
-                    >
-                      {refineStream.loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                      Refine
-                    </button>
-
-                    {(refineStream.text || refineStream.loading) && (
-                      <div className={`bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 p-4 ${refineStream.done ? '' : 'max-h-96 overflow-y-auto'}`}>
-                        {refineStream.done
-                          ? <MarkdownPreview content={refineStream.text} />
-                          : <StreamingText text={refineStream.text} done={refineStream.done} />
-                        }
+                  {/* Refinement (collapsed by default) */}
+                  {refineOpen && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                          <Wand2 className="w-4 h-4 text-primary-500" />
+                          Refine this letter
+                        </h3>
+                        <button
+                          onClick={() => setRefineOpen(false)}
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                    )}
+                      <textarea
+                        placeholder="Make it more concise, add more emphasis on leadership, change the opening hook..."
+                        value={refineInstruction}
+                        onChange={e => setRefineInstruction(e.target.value)}
+                        rows={3}
+                        className="input resize-y"
+                      />
 
-                    {refineStream.error && (
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
-                        <AlertCircle className="w-4 h-4" />
-                        {refineStream.error}
-                      </div>
-                    )}
-                  </div>
+                      <button
+                        onClick={handleRefine}
+                        disabled={!refineInstruction.trim() || refineStream.loading}
+                        className="btn-primary flex items-center gap-2"
+                      >
+                        {refineStream.loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                        Refine
+                      </button>
+
+                      {(refineStream.text || refineStream.loading) && (
+                        <div className={`bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 p-4 ${refineStream.done ? '' : 'max-h-96 overflow-y-auto'}`}>
+                          {refineStream.done
+                            ? <MarkdownPreview content={refineStream.text} />
+                            : <StreamingText text={refineStream.text} done={refineStream.done} />
+                          }
+                        </div>
+                      )}
+
+                      {refineStream.error && (
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {refineStream.error}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -940,6 +963,115 @@ export default function ApplicationDetailPage() {
               )}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Notes (bottom) */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Notes</span>
+          <button
+            onClick={() => { setNoteFormOpen(v => !v); setNoteForm({ headline: '', body: '' }); }}
+            className="text-xs font-medium flex items-center gap-1"
+            style={{ color: theme.accent }}
+          >
+            <Plus className="w-3.5 h-3.5" /> Add note
+          </button>
+        </div>
+
+        {noteFormOpen && (
+          <div className="mb-4 p-3 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 space-y-2">
+            <input
+              type="text"
+              value={noteForm.headline}
+              onChange={e => setNoteForm(f => ({ ...f, headline: e.target.value }))}
+              placeholder="Headline"
+              className="input w-full text-sm font-medium"
+              autoFocus={noteFormOpen}
+            />
+            <textarea
+              value={noteForm.body}
+              onChange={e => setNoteForm(f => ({ ...f, body: e.target.value }))}
+              placeholder="Note text (optional)"
+              rows={3}
+              className="input w-full text-sm resize-y"
+            />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setNoteFormOpen(false)} className="btn-secondary text-xs py-1">Cancel</button>
+              <button
+                onClick={handleCreateNote}
+                disabled={noteSaving || !noteForm.headline.trim()}
+                className="btn-primary text-xs py-1 flex items-center gap-1"
+              >
+                {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          {notes.length === 0 && !noteFormOpen && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-2">No notes yet — click "Add note" to get started.</p>
+          )}
+          {notes.map(note => (
+            <div key={note.id} className="rounded-lg bg-gray-50 dark:bg-gray-900/30 p-3">
+              {editingNote?.id === note.id ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={editForm.headline}
+                    onChange={e => setEditForm(f => ({ ...f, headline: e.target.value }))}
+                    className="input w-full text-sm font-medium"
+                    autoFocus
+                  />
+                  <textarea
+                    value={editForm.body}
+                    onChange={e => setEditForm(f => ({ ...f, body: e.target.value }))}
+                    rows={3}
+                    className="input w-full text-sm resize-y"
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <button onClick={() => setEditingNote(null)} className="btn-secondary text-xs py-1">Cancel</button>
+                    <button
+                      onClick={handleUpdateNote}
+                      disabled={noteSaving || !editForm.headline.trim()}
+                      className="btn-primary text-xs py-1 flex items-center gap-1"
+                    >
+                      {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider flex-shrink-0 mt-0.5 w-12" style={{ color: theme.text2 }}>
+                    {new Date(note.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{note.headline}</p>
+                    {note.body && <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 whitespace-pre-wrap">{note.body}</p>}
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => { setEditingNote(note); setEditForm({ headline: note.headline, body: note.body }); }}
+                      className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      title="Edit"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteNote(note.id)}
+                      className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      title="Delete"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
