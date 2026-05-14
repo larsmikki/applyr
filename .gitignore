@@ -25,6 +25,7 @@ coverage/
 
 # Claude AI files
 .claude/
+.codex
 
 # Windows batch files
 *.bat

@@ -4,6 +4,7 @@ server/dist
 client/dist
 data
 .claude
+.codex
 tasks
 migration scripts
 *.db

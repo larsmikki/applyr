@@ -78,7 +78,7 @@ export async function processOdtTemplate(
   const allLines = coverLetterText.split('\n');
   const headingIndex = allLines.findIndex(l => l.trim().length > 0);
   const rawHeading = headingIndex >= 0 ? allLines[headingIndex].trim() : '';
-  const headingText = rawHeading.startsWith('# ') ? rawHeading.slice(2) : rawHeading;
+  const headingText = rawHeading.replace(/^#{1,6}\s+/, '');
   const bodyText = headingIndex >= 0
     ? allLines.slice(headingIndex + 1).join('\n').trimStart()
     : coverLetterText;
