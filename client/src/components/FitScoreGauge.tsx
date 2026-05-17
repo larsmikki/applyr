@@ -18,12 +18,18 @@ export default function FitScoreGauge({ score, size = 100 }: Props) {
   const colorClass = getColorClass(score);
 
   return (
-    <div className={`flex flex-col items-center gap-1 ${colorClass}`} style={{ width: size }}>
+    <div
+      className={`flex flex-col items-center gap-1 ${colorClass}`}
+      style={{ width: size }}
+      role="img"
+      aria-label={`Fit score ${score} out of 100`}
+    >
       <svg
         width={size}
         height={size / 2 + 8}
         viewBox={`0 0 ${size} ${size / 2 + 8}`}
         className="overflow-visible"
+        aria-hidden="true"
       >
         {/* Background arc */}
         <path

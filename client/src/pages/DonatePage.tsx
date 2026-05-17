@@ -61,13 +61,15 @@ export default function DonatePage() {
                 <h3 className="text-sm font-bold mb-1" style={{ color: theme.text }}>{title}</h3>
                 <p className="text-xs" style={{ color: theme.text2 }}>{sub}</p>
               </div>
-              <button
-                onClick={() => window.open(url, '_blank')}
-                className="w-full py-2.5 text-sm font-semibold rounded-xl text-white transition-all hover:opacity-90"
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full block py-2.5 text-sm font-semibold rounded-xl text-white transition-all hover:opacity-90 text-center"
                 style={{ background: theme.gradient, boxShadow: `0 4px 14px ${theme.accent}30` }}
               >
                 {label}
-              </button>
+              </a>
             </div>
           ))}
         </div>

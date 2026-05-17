@@ -4,6 +4,7 @@ import { getVaultDocuments, getCVReviewsByDoc, deleteCVReview, streamRewriteCV, 
 import { VaultDocument, CVReview } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToast';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import MarkdownPreview from '@/components/MarkdownPreview';
 import Modal from '@/components/Modal';
 import ToastStack from '@/components/Toast';
@@ -37,6 +38,7 @@ const TABS: { id: CvPageTab; label: string; icon: React.ElementType }[] = [
 ];
 
 export default function AnalysisPage() {
+  useDocumentTitle('Analysis');
   const { theme } = useTheme();
   const { toasts, addToast, removeToast } = useToast();
   const [activeTab, setActiveTab] = useState<CvPageTab>('cv');
@@ -156,10 +158,9 @@ export default function AnalysisPage() {
 
   async function fetchDocs() {
     try {
-      const data = await getVaultDocuments();
-      const cvDocs = data.filter((d: VaultDocument) => d.doc_type === 'cv');
+      const cvDocs = await getVaultDocuments('cv');
       setDocs(cvDocs);
-      const defaultCv = cvDocs.find(d => d.is_default === 1);
+      const defaultCv = cvDocs.find((d: VaultDocument) => d.is_default === 1);
       if (defaultCv) setSelectedDocId(defaultCv.id);
     } catch (e) {
       console.error('Failed to fetch docs', e);
@@ -361,7 +362,7 @@ export default function AnalysisPage() {
       <ToastStack toasts={toasts} onRemove={removeToast} />
 
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold" style={{ color: theme.text }}>Analysis</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>Analysis</h1>
         <p style={{ color: theme.text2 }}>Evaluate your CV, identify gaps, and discover roles where you'll shine.</p>
       </div>
 

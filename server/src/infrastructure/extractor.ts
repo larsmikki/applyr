@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { isSafeUrl } from '../util/url';
 
 interface ExtractResult {
   company: string;
@@ -204,16 +205,35 @@ function extractLargestBlock($: cheerio.CheerioAPI): string {
   return htmlToMarkdown(bestHtml);
 }
 
+async function fetchWithSafeRedirects(initialUrl: string, maxRedirects = 5): Promise<Response> {
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'da,en-US;q=0.9,en;q=0.5',
+  };
+  let currentUrl = initialUrl;
+  for (let hop = 0; hop <= maxRedirects; hop++) {
+    if (!isSafeUrl(currentUrl)) {
+      throw new Error('Redirect to a disallowed URL was blocked');
+    }
+    const response = await fetch(currentUrl, {
+      headers,
+      redirect: 'manual',
+      signal: AbortSignal.timeout(30000),
+    });
+    if (response.status >= 300 && response.status < 400) {
+      const loc = response.headers.get('location');
+      if (!loc) return response;
+      currentUrl = new URL(loc, currentUrl).toString();
+      continue;
+    }
+    return response;
+  }
+  throw new Error('Too many redirects');
+}
+
 export async function extractFromUrl(url: string): Promise<ExtractResult> {
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'da,en-US;q=0.9,en;q=0.5',
-    },
-    redirect: 'follow',
-    signal: AbortSignal.timeout(30000),
-  });
+  const response = await fetchWithSafeRedirects(url);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);

@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Briefcase, Search, ChevronLeft, ChevronRight, Calendar, PlusCircle } from 'lucide-react';
 import { getApplications } from '@/api';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import type { Application, Pagination } from '@/types';
 import StatusBadge from '@/components/StatusBadge';
 import FitScoreRing from '@/components/FitScoreRing';
@@ -47,14 +48,32 @@ function CompanyMark({ company }: { company: string }) {
 }
 
 export default function HistoryPage() {
+  useDocumentTitle('History');
   const { theme } = useTheme();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [applications, setApplications] = useState<Application[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('created_at_desc');
-  const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState(() => searchParams.get('filter') || 'all');
+  const [search, setSearch] = useState(() => searchParams.get('q') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get('q') || '');
+  const [sort, setSort] = useState(() => searchParams.get('sort') || 'created_at_desc');
+  const [page, setPage] = useState(() => parseInt(searchParams.get('page') || '1', 10) || 1);
+
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(handle);
+  }, [search]);
+
+  // Mirror filter state into the URL so navigating away and back restores it.
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (filter !== 'all') next.set('filter', filter);
+    if (debouncedSearch.trim()) next.set('q', debouncedSearch.trim());
+    if (sort !== 'created_at_desc') next.set('sort', sort);
+    if (page !== 1) next.set('page', String(page));
+    setSearchParams(next, { replace: true });
+  }, [filter, debouncedSearch, sort, page, setSearchParams]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,7 +84,7 @@ export default function HistoryPage() {
         sort,
       };
       if (filter !== 'all') params.status = filter;
-      if (search.trim()) params.search = search.trim();
+      if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
 
       const result = await getApplications(params);
       setApplications(result.data);
@@ -75,19 +94,19 @@ export default function HistoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, search, sort, page]);
+  }, [filter, debouncedSearch, sort, page]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Debounced search
   useEffect(() => {
     setPage(1);
-  }, [search, filter, sort]);
+  }, [debouncedSearch, filter, sort]);
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
+      <h1 className="text-2xl font-extrabold tracking-tight mb-6" style={{ color: theme.text }}>History</h1>
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6 space-y-3">
         <div className="flex flex-wrap gap-2">

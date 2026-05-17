@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, json } from 'express';
 
 import fs from 'fs';
 import path from 'path';
@@ -9,6 +9,11 @@ import { config } from '../config';
 import { getVaultDir, ensureVaultDir } from '../infrastructure/storage';
 
 const router = Router();
+
+// Full backups inline every vault file as base64. The global 10 MB JSON limit is
+// too tight: per-file uploads alone allow 20 MB each, so a real backup with a
+// handful of PDFs easily exceeds 10 MB. Give the import route its own larger limit.
+const largeJson = json({ limit: '100mb' });
 
 router.get('/export/csv', authMiddleware, (_req, res) => {
   const csv = generateCsv();
@@ -135,7 +140,7 @@ router.get('/export/full', authMiddleware, (_req, res) => {
 });
 
 // ── Full backup import ────────────────────────────────────────────────
-router.post('/import/full', authMiddleware, (req, res) => {
+router.post('/import/full', largeJson, authMiddleware, (req, res) => {
   const db = getDb();
   const backup = req.body as {
     version?: number;
@@ -189,9 +194,15 @@ router.post('/import/full', authMiddleware, (req, res) => {
     if (backup.vault_documents?.length) {
       const stmt = db.prepare(`INSERT INTO vault_documents (id, label, filename, stored_name, mime_type, size_bytes, doc_type, extracted_text, is_default, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
       for (const d of backup.vault_documents) {
+        // Reject path-traversal attempts: stored_name must be a plain basename
+        // (no separators, no parent refs) so file writes stay inside the vault dir.
+        const storedName = d.stored_name as string | undefined;
+        if (storedName && (storedName !== path.basename(storedName) || storedName.includes('\0'))) {
+          throw new Error(`Invalid stored_name in vault_documents: ${storedName}`);
+        }
         stmt.run(d.id, d.label, d.filename, d.stored_name, d.mime_type, d.size_bytes, d.doc_type, d.extracted_text ?? null, d.is_default ?? 0, d.created_at, d.updated_at);
-        if (d.file_data && d.stored_name) {
-          filesToWrite.push({ storedName: d.stored_name as string, data: Buffer.from(d.file_data, 'base64') });
+        if (d.file_data && storedName) {
+          filesToWrite.push({ storedName, data: Buffer.from(d.file_data, 'base64') });
         }
       }
     }
@@ -245,11 +256,22 @@ router.post('/import/full', authMiddleware, (req, res) => {
     }
   });
 
-  restore();
+  try {
+    restore();
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Import failed' });
+    return;
+  }
 
-  // Write vault files to disk after DB commit
+  // Write vault files to disk after DB commit. Resolve under vaultDir as a
+  // second line of defence against any stored_name that slipped past validation.
+  const vaultDirResolved = path.resolve(vaultDir);
   for (const { storedName, data } of filesToWrite) {
-    fs.writeFileSync(path.join(vaultDir, storedName), data);
+    const target = path.resolve(vaultDirResolved, storedName);
+    if (!target.startsWith(vaultDirResolved + path.sep) && target !== vaultDirResolved) {
+      continue;
+    }
+    fs.writeFileSync(target, data);
   }
 
   res.json({

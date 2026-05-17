@@ -52,13 +52,25 @@ export default function FileDropzone({ accept, onFile, label = 'Drop a file or c
     );
   }
 
+  const openPicker = () => inputRef.current?.click();
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openPicker();
+    }
+  };
+
   return (
     <div
-      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+      onClick={openPicker}
+      onKeyDown={handleKeyDown}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150 ${
+      className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
         isDragging
           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
           : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'
@@ -70,8 +82,9 @@ export default function FileDropzone({ accept, onFile, label = 'Drop a file or c
         accept={accept}
         onChange={handleChange}
         className="hidden"
+        tabIndex={-1}
       />
-      <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary-500' : 'text-gray-400'}`} />
+      <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary-500' : 'text-gray-400'}`} aria-hidden="true" />
       <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
         {accept ? `Accepted: ${accept}` : 'Any file type'}

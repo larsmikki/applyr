@@ -48,7 +48,7 @@ const ApplicationsIcon = () => (
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: <HomeIcon />, end: true },
-  { to: '/apply', label: 'New', icon: <PlusCircleIcon />, end: false },
+  { to: '/apply', label: 'New Application', icon: <PlusCircleIcon />, end: false },
   { to: '/history', label: 'History', icon: <ApplicationsIcon />, end: false },
   { to: '/analysis', label: 'Analysis', icon: <AnalyzeCVIcon />, end: false },
   { to: '/settings', label: 'Settings', icon: <SettingsIcon />, end: false },
@@ -60,6 +60,14 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: theme.bg, color: theme.text }}>
+      {/* Skip-to-content: visible only when focused via keyboard. Lets users
+          bypass the nav on every page load. */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:rounded-lg focus:bg-primary-600 focus:text-white focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       {/* Sticky header */}
       <header
         className="sticky top-0 z-40 backdrop-blur-md"
@@ -71,28 +79,31 @@ export default function Layout() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <button
+            type="button"
             onClick={() => navigate('/')}
+            aria-label="Applyr — go to dashboard"
             className="flex items-center gap-2.5 rounded-lg p-1 -ml-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            <img src="/favicon.svg" width={28} height={28} alt="Applyr" className="shrink-0" />
+            <img src="/favicon.svg" width={28} height={28} alt="" className="shrink-0" />
             <span className="text-xl font-extrabold tracking-tight gradient-text select-none">Applyr</span>
           </button>
 
           {/* Nav */}
-          <nav className="flex items-center gap-0.5">
+          <nav className="flex items-center gap-0.5" aria-label="Primary">
             {NAV_ITEMS.map(({ to, label, icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
+                aria-label={label}
                 className="flex items-center gap-1.5 px-3 py-3 rounded-lg text-sm font-medium transition-[color,background-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
                 style={({ isActive }) => ({
                   background: isActive ? `${theme.accent}22` : 'transparent',
                   color: isActive ? theme.accent : theme.text2,
                 })}
               >
-                {icon}
+                <span aria-hidden="true">{icon}</span>
                 <span className="hidden sm:inline">{label}</span>
               </NavLink>
             ))}
@@ -102,7 +113,7 @@ export default function Layout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
 

@@ -9,6 +9,7 @@ import StreamingText from '@/components/StreamingText';
 import MarkdownPreview from '@/components/MarkdownPreview';
 import { useStream } from '@/hooks/useStream';
 import { useToast } from '@/hooks/useToast';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import ToastStack from '@/components/Toast';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -30,6 +31,7 @@ const LANGUAGES = [
 ];
 
 export default function NewApplicationPage() {
+  useDocumentTitle('New Application');
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -75,8 +77,7 @@ export default function NewApplicationPage() {
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    getVaultDocuments().then(docs => {
-      const cvDocs = docs.filter(d => d.doc_type === 'cv');
+    getVaultDocuments('cv').then(cvDocs => {
       setCvDocuments(cvDocs);
       const defaultCv = cvDocs.find(d => d.is_default);
       if (defaultCv) setSelectedCvId(defaultCv.id);

@@ -14,6 +14,7 @@ import MarkdownPreview from '@/components/MarkdownPreview';
 import StreamingText from '@/components/StreamingText';
 import { useStream } from '@/hooks/useStream';
 import { useToast } from '@/hooks/useToast';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import ToastStack from '@/components/Toast';
 import { useTheme } from '@/contexts/ThemeContext';
 import Modal from '@/components/Modal';
@@ -238,17 +239,16 @@ export default function ApplicationDetailPage() {
     if (!id) return;
     setLoading(true);
     try {
-      const [{ application, logs: appLogs }, allVersions, docs, appNotes] = await Promise.all([
+      const [{ application }, allVersions, cvDocs, appNotes] = await Promise.all([
         getApplication(id),
         getApplicationVersions(id),
-        getVaultDocuments(),
+        getVaultDocuments('cv'),
         getApplicationNotes(id),
       ]);
       setApp(application);
       setLogs(allVersions);
       setNotes(appNotes);
 
-      const cvDocs = docs.filter(d => d.doc_type === 'cv');
       setCvDocuments(cvDocs);
       const defaultCv = cvDocs.find(d => d.is_default);
       setSelectedCvId(defaultCv?.id || cvDocs[0]?.id || '');
@@ -275,6 +275,8 @@ export default function ApplicationDetailPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  useDocumentTitle(app ? `${app.company} — ${app.role}` : null);
 
   const handleStatusChange = async (status: string) => {
     if (!id || !app) return;
@@ -738,7 +740,7 @@ export default function ApplicationDetailPage() {
 
           {/* Job Description Tab */}
           {tab === 'job_description' && (() => {
-            const md = app.job_description;
+            const md = app.job_description ?? '';
             const isMarkdown = /^#{1,6} /m.test(md) || /\*\*.+?\*\*/.test(md) || /^- .+/m.test(md) || /^[*•] .+/m.test(md);
             return isMarkdown
               ? <MarkdownPreview content={md} />

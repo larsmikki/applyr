@@ -128,14 +128,15 @@ describe('POST /api/jobs', () => {
 });
 
 describe('GET /api/jobs/:id', () => {
-  it('returns the job with generation logs', async () => {
+  it('returns the application by id', async () => {
     const created = await request(app).post('/api/jobs').send(jobPayload);
     const id = created.body.application.id;
 
     const res = await request(app).get(`/api/jobs/${id}`);
     expect(res.status).toBe(200);
     expect(res.body.application.id).toBe(id);
-    expect(Array.isArray(res.body.logs)).toBe(true);
+    // Generation logs are served by /:id/versions, not inlined here.
+    expect(res.body.logs).toBeUndefined();
   });
 
   it('returns 404 for unknown id', async () => {

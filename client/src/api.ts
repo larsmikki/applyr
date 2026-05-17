@@ -57,7 +57,8 @@ export const updateBestPractices = (content: string) =>
   request<{ success: boolean }>('/best-practices', { method: 'PUT', body: JSON.stringify({ content }) });
 
 // Vault
-export const getVaultDocuments = () => request<VaultDocument[]>('/vault');
+export const getVaultDocuments = (docType?: string) =>
+  request<VaultDocument[]>(docType ? `/vault?doc_type=${encodeURIComponent(docType)}` : '/vault');
 export const uploadDocument = (formData: FormData) => {
   const token = getToken();
   const headers: Record<string, string> = {};
@@ -70,13 +71,6 @@ export const uploadDocument = (formData: FormData) => {
       }
       return res.json() as Promise<VaultDocument>;
     });
-};
-export const saveTextToVault = (label: string, text: string, docType: string): Promise<VaultDocument> => {
-  const formData = new FormData();
-  formData.append('file', new Blob([text], { type: 'text/markdown' }), `${label}.md`);
-  formData.append('label', label);
-  formData.append('doc_type', docType);
-  return uploadDocument(formData);
 };
 export const updateDocument = (id: string, data: Partial<VaultDocument>) =>
   request<VaultDocument>(`/vault/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
@@ -106,7 +100,7 @@ export const createApplication = (data: Partial<Application>) =>
     body: JSON.stringify(data),
   });
 export const getApplication = (id: string) =>
-  request<{ application: Application; logs: GenerationLog[] }>(`/jobs/${id}`);
+  request<{ application: Application }>(`/jobs/${id}`);
 export const updateApplication = (id: string, data: Partial<Application>) =>
   request<Application>(`/jobs/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const deleteApplication = (id: string, deleteFolder = true) =>

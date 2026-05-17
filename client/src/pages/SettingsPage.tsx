@@ -19,6 +19,7 @@ import type { Settings as SettingsType, VaultDocument, Snippet, PromptsResponse 
 import { useTheme } from '@/contexts/ThemeContext';
 import ThemePicker from '@/components/ThemePicker';
 import { useToast } from '@/hooks/useToast';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import ToastStack from '@/components/Toast';
 import FileDropzone from '@/components/FileDropzone';
 import FileBrowser from '@/components/FileBrowser';
@@ -259,6 +260,7 @@ function SetupStatus({ aiDone, cvDone, templateDone, outputDone, aiDetail, cvDet
 }
 
 export default function SettingsPage() {
+  useDocumentTitle('Settings');
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -586,7 +588,7 @@ export default function SettingsPage() {
   const aiDetail = settings.ai_provider === 'ollama'
     ? `Ollama selected${settings.ai_model ? `, model ${settings.ai_model}` : ''}`
     : `API key configured${settings.ai_model ? `, model ${settings.ai_model}` : ''}`;
-  const cvDetail = defaultCv ? `${defaultCv.label || defaultCv.filename}${defaultCv.extracted_text ? ' - text extracted' : ' - no extracted text yet'}` : '';
+  const cvDetail = defaultCv ? `${defaultCv.label || defaultCv.filename}${(defaultCv.has_extracted_text || defaultCv.extracted_text) ? ' - text extracted' : ' - no extracted text yet'}` : '';
   const templateDetail = defaultTemplate ? `${defaultTemplate.label || defaultTemplate.filename}` : '';
   const outputDetail = settings.output_dir?.trim() || 'Using the server default output folder';
 

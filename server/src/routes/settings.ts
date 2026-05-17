@@ -25,7 +25,29 @@ router.get('/', authMiddleware, (_req, res) => {
 
 router.put('/', authMiddleware, (req, res) => {
   const db = getDb();
-  const updates = req.body as Record<string, string>;
+  const updates = req.body as Record<string, unknown>;
+
+  if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
+    res.status(400).json({ error: 'Body must be an object of key/value strings' });
+    return;
+  }
+
+  // Settings is a flat string-only key/value store. Reject any non-string value
+  // up front so a stray number or object doesn't end up stringified as "42" or
+  // "[object Object]" in the DB.
+  const filtered: Record<string, string> = {};
+  for (const [key, value] of Object.entries(updates)) {
+    if (typeof value !== 'string') {
+      res.status(400).json({ error: `Setting "${key}" must be a string, got ${typeof value}` });
+      return;
+    }
+    filtered[key] = value;
+  }
+
+  // Guard: '***' is the masked sentinel returned by GET — don't let it overwrite a real secret.
+  if (filtered.ai_api_key === '***') {
+    delete filtered.ai_api_key;
+  }
 
   const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
   const updateMany = db.transaction((data: Record<string, string>) => {
@@ -34,7 +56,7 @@ router.put('/', authMiddleware, (req, res) => {
     }
   });
 
-  updateMany(updates);
+  updateMany(filtered);
 
   // Return updated settings with masked api_key
   const rows = db.prepare('SELECT key, value FROM settings').all() as { key: string; value: string }[];

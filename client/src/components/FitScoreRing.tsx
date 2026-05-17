@@ -17,8 +17,14 @@ export default function FitScoreRing({ score, size = 44, grey = false }: Props) 
     '#ef4444';
 
   return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+    <div
+      className="relative flex-shrink-0"
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={`Fit score ${score} out of 100`}
+      title={`Fit score: ${score}/100`}
+    >
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }} aria-hidden="true">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -44,6 +50,7 @@ export default function FitScoreRing({ score, size = 44, grey = false }: Props) 
       <span
         className="absolute inset-0 flex items-center justify-center font-bold"
         style={{ fontSize: size * 0.3, color }}
+        aria-hidden="true"
       >
         {score}
       </span>

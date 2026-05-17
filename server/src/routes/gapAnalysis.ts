@@ -55,7 +55,11 @@ router.get('/history', authMiddleware, (_req, res) => {
 // Delete a saved gap analysis
 router.delete('/:id', authMiddleware, (req, res) => {
   const db = getDb();
-  db.prepare('DELETE FROM gap_analyses WHERE id = ?').run(req.params.id);
+  const result = db.prepare('DELETE FROM gap_analyses WHERE id = ?').run(req.params.id);
+  if (result.changes === 0) {
+    res.status(404).json({ error: 'Gap analysis not found' });
+    return;
+  }
   res.json({ success: true });
 });
 

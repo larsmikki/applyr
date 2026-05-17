@@ -46,6 +46,8 @@ const STAGE_COLORS: Record<string, string> = {
   applied: '#3b82f6',
   interview: '#a855f7',
   offer: '#22c55e',
+  rejected: '#ef4444',
+  withdrawn: '#6b7280',
 };
 
 function PipelineFunnel({ byStatus }: { byStatus: Record<string, number> }) {
@@ -134,7 +136,7 @@ export default function FrontPage() {
   const [recentApps, setRecentApps] = useState<Application[]>([]);
   const [inProgressApps, setInProgressApps] = useState<Application[]>([]);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
-  const [companies, setCompanies] = useState<{ company: string; count: number }[]>([]);
+  const [companies, setCompanies] = useState<{ company: string; count: number; latestStatus: string }[]>([]);
   const [avgPerWeek, setAvgPerWeek] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -256,11 +258,19 @@ export default function FrontPage() {
             <SectionLabel title="Where you're applying" />
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mt-3">
               <div className="space-y-2">
-                {companies.map(({ company, count }) => {
+                {companies.map(({ company, count, latestStatus }) => {
                   const max = companies[0].count;
+                  const dotColor = STAGE_COLORS[latestStatus] || '#9ca3af';
                   return (
                     <div key={company} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-700 dark:text-gray-300 w-32 truncate flex-shrink-0">{company}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 w-32 truncate flex-shrink-0 flex items-center gap-1.5">
+                        <span
+                          className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ background: dotColor }}
+                          title={`Latest: ${latestStatus}`}
+                        />
+                        {company}
+                      </span>
                       <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                         <div
                           className="h-2 rounded-full"

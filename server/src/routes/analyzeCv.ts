@@ -78,21 +78,36 @@ router.get('/:id', authMiddleware, (req, res) => {
 router.patch('/:id/rewrite', authMiddleware, (req, res) => {
   const { id } = req.params;
   const { rewrittenCV, rewriteReview, rewriteScore } = req.body as {
-    rewrittenCV: string;
-    rewriteReview: string;
-    rewriteScore: number | null;
+    rewrittenCV?: string;
+    rewriteReview?: string;
+    rewriteScore?: number | null;
   };
+
+  if (typeof rewrittenCV !== 'string' || typeof rewriteReview !== 'string') {
+    res.status(400).json({ error: 'rewrittenCV and rewriteReview must be strings' });
+    return;
+  }
+
   const db = getDb();
-  db.prepare(
+  const result = db.prepare(
     'UPDATE cv_analyses SET rewritten_cv = ?, rewrite_review = ?, rewrite_score = ? WHERE id = ?'
   ).run(rewrittenCV, rewriteReview, rewriteScore ?? null, id);
+
+  if (result.changes === 0) {
+    res.status(404).json({ error: 'CV analysis not found' });
+    return;
+  }
   res.json({ success: true });
 });
 
 router.delete('/:id', authMiddleware, (req, res) => {
   const { id } = req.params;
   const db = getDb();
-  db.prepare('DELETE FROM cv_analyses WHERE id = ?').run(id);
+  const result = db.prepare('DELETE FROM cv_analyses WHERE id = ?').run(id);
+  if (result.changes === 0) {
+    res.status(404).json({ error: 'CV analysis not found' });
+    return;
+  }
   res.json({ success: true });
 });
 

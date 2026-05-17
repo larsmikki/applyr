@@ -181,6 +181,15 @@ function applyTheme(t: ThemeDefinition) {
   } else {
     root.classList.remove('dark');
   }
+
+  // Keep the mobile-browser chrome (iOS Safari, Android Chrome) in sync with the
+  // active theme so the status bar / address bar matches the surface color the
+  // user actually sees. Without this, the hardcoded purple from index.html stays
+  // even when the user picks Forest, Ocean, etc.
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) {
+    themeColorMeta.setAttribute('content', t.surface);
+  }
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

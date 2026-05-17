@@ -30,6 +30,15 @@ export function createApp(): express.Application {
     credentials: true,
   }));
 
+  // Baseline security headers. Single-page, same-origin app — no need for CSP/HSTS here;
+  // these three are uncontroversial and cost nothing.
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    next();
+  });
+
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

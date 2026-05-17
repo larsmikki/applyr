@@ -9,11 +9,14 @@ export function createApplicationFolder(
   outputDir: string,
   company: string,
   role: string,
-  _appId: string
+  appId: string
 ): string {
   const safeCo = sanitizeFolderName(company).slice(0, 40).toLowerCase() || 'unknown';
   const safeRole = sanitizeFolderName(role).slice(0, 60).toLowerCase() || 'role';
-  const folderName = `${safeCo}_${safeRole}`;
+  // Suffix with the first 8 chars of the application id so two applications to
+  // the same role at the same company don't collide and overwrite each other.
+  const idSuffix = appId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8) || 'app';
+  const folderName = `${safeCo}_${safeRole}_${idSuffix}`;
   const folderPath = path.join(outputDir, folderName);
 
   if (!fs.existsSync(folderPath)) {

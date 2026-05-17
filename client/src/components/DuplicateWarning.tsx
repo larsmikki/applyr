@@ -54,6 +54,11 @@ export default function DuplicateWarning({ duplicate, onDismiss }: Props) {
               </li>
             ))}
           </ul>
+          {duplicate.totalMatches !== undefined && duplicate.totalMatches > duplicate.matches.length && (
+            <p className={`text-xs ${color.muted} mt-2`}>
+              + {duplicate.totalMatches - duplicate.matches.length} more in history
+            </p>
+          )}
         </div>
         <button
           onClick={handleDismiss}

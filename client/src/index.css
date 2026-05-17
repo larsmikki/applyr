@@ -105,3 +105,39 @@
   animation: blink 1s infinite;
   margin-left: 1px;
 }
+
+/* Respect the user's reduced-motion preference: kill ambient transitions,
+   transforms, and decorative animations so vestibular-sensitive users aren't
+   forced to watch hover lifts, blinks, and progress sweeps. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card-hover:hover { transform: none; }
+  .cursor-blink::after { animation: none; }
+}
+
+/* Printable cover letters: strip the chrome (nav, footer, toasts, modals,
+   buttons) and ambient styling. The page-level <header>, <footer>, and any
+   element marked .no-print is hidden; backgrounds reset to white; box shadows
+   removed; the prose area uses a serif so the printout reads like a letter. */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  header, footer, .no-print { display: none !important; }
+  button, a[role="button"] { display: none !important; }
+  .rounded-xl, .rounded-2xl { box-shadow: none !important; border: 0 !important; }
+  main { padding: 0 !important; max-width: 100% !important; }
+  .prose, .prose * {
+    color: #000 !important;
+    font-family: Georgia, 'Times New Roman', serif !important;
+  }
+  /* Avoid orphan headings */
+  h1, h2, h3 { page-break-after: avoid; }
+  pre, blockquote { page-break-inside: avoid; }
+}

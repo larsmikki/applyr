@@ -74,11 +74,12 @@ router.post('/generate', authMiddleware, async (req, res) => {
     cvText = doc?.extracted_text ?? null;
   }
 
-  // Preserve existing user_notes before overwrite
+  // Preserve existing user_notes and created_at before overwrite
   const existing = db
-    .prepare('SELECT user_notes FROM interview_prep WHERE application_id = ?')
-    .get(applicationId) as { user_notes: string | null } | undefined;
+    .prepare('SELECT user_notes, created_at FROM interview_prep WHERE application_id = ?')
+    .get(applicationId) as { user_notes: string | null; created_at: number } | undefined;
   const preservedNotes = existing?.user_notes ?? null;
+  const preservedCreatedAt = existing?.created_at ?? null;
 
   // Abort when client disconnects
   const controller = new AbortController();
@@ -98,11 +99,12 @@ router.post('/generate', authMiddleware, async (req, res) => {
       .get() as { value: string } | undefined;
     const model = settingsRow?.value || 'gpt-4o';
 
+    // Preserve the original creation timestamp across regenerations.
     db.prepare(`
       INSERT OR REPLACE INTO interview_prep
         (application_id, questions, user_notes, model, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(applicationId, fullText, preservedNotes, model, now, now);
+    `).run(applicationId, fullText, preservedNotes, model, preservedCreatedAt ?? now, now);
   };
 
   await streamInterviewPrep(app.job_description, cvText, res, controller.signal, onDone);

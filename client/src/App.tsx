@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import SettingsProvider from '@/contexts/SettingsContext';
 
+import ErrorBoundary from '@/components/ErrorBoundary';
 import Layout from '@/components/Layout';
 import FrontPage from '@/pages/FrontPage';
 import NewApplicationPage from '@/pages/NewApplicationPage';
@@ -14,6 +15,7 @@ import AnalysisPage from '@/pages/AnalysisPage';
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <ThemeProvider>
       <SettingsProvider>
         <BrowserRouter>
@@ -38,5 +40,6 @@ export default function App() {
         </BrowserRouter>
       </SettingsProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }

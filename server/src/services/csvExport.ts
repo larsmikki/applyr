@@ -14,7 +14,13 @@ interface ApplicationRow {
 
 function escapeCsvField(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return '';
-  const str = String(value);
+  let str = String(value);
+  // Mitigate CSV injection: a leading =, +, -, @, tab, or CR is interpreted as a
+  // formula by Excel/Sheets. Prefix with a single quote (OWASP-recommended) so
+  // the value is rendered as text rather than executed when the file is opened.
+  if (str.length > 0 && /^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
   if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return `"${str.replace(/"/g, '""')}"`;
   }

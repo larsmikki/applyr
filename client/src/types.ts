@@ -3,7 +3,7 @@ export interface Application {
   company: string;
   role: string;
   job_url?: string;
-  job_description: string;
+  job_description?: string;
   status: 'draft' | 'applied' | 'interview' | 'offer' | 'rejected' | 'withdrawn';
   fit_score?: number;
   fit_analysis?: string;
@@ -44,6 +44,7 @@ export interface VaultDocument {
   size_bytes: number;
   doc_type: 'cv' | 'cover_letter' | 'portfolio' | 'other' | 'cover_letter_template' | 'attachment';
   extracted_text?: string;
+  has_extracted_text?: number;
   is_default: number;
   created_at: number;
   updated_at: number;
@@ -99,6 +100,7 @@ export interface AnalyticsSummary {
 export interface DuplicateCheckResult {
   isDuplicate: boolean;
   matches: (Pick<Application, 'id' | 'company' | 'role' | 'status' | 'created_at'> & { exactMatch: boolean })[];
+  totalMatches?: number;
 }
 
 export interface Pagination {

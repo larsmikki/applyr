@@ -1,6 +1,25 @@
 import { useMemo } from 'react';
 import { marked } from 'marked';
 
+// XSS hardening: marked v11 passes raw HTML through by default. Job descriptions
+// are extracted from arbitrary external pages, so any inline HTML in the markdown
+// could fire JS via `<img onerror>` or similar. We render any html-block or html-inline
+// token as escaped text instead — markdown features still work; raw HTML doesn't.
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+marked.use({
+  renderer: {
+    html(html: string) { return escapeHtml(html); },
+  },
+});
+
 interface Props {
   content: string;
   className?: string;

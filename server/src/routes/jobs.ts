@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { getDb } from '../db/connection';
 import { checkDuplicate } from '../services/duplicate';
+import { APPLICATION_STATUSES, isApplicationStatus } from '../constants/enums';
 import { processOdtTemplate, odtToPdf } from '../infrastructure/odtTemplate';
 import { writeOdtBuffer } from '../infrastructure/outputWriter';
 import { getVaultDir } from '../infrastructure/storage';
@@ -49,7 +50,9 @@ router.get('/', authMiddleware, (req, res) => {
   const orderBy = orderMap[sort] || 'created_at DESC';
 
   const countRow = db.prepare(`SELECT COUNT(*) as count FROM applications WHERE ${where}`).get(...params) as { count: number };
-  const rows = db.prepare(`SELECT * FROM applications WHERE ${where} ORDER BY ${orderBy} LIMIT ? OFFSET ?`).all(...params, limitNum, offset);
+  // List view omits heavy fields (job_description, fit_analysis); detail endpoint returns full row.
+  const listColumns = 'id, company, role, job_url, status, fit_score, output_path, applied_at, notes, created_at, updated_at';
+  const rows = db.prepare(`SELECT ${listColumns} FROM applications WHERE ${where} ORDER BY ${orderBy} LIMIT ? OFFSET ?`).all(...params, limitNum, offset);
 
   res.json({
     data: rows,
@@ -80,6 +83,11 @@ router.post('/', authMiddleware, (req, res) => {
 
   if (!company || !role || !job_description) {
     res.status(400).json({ error: 'company, role, and job_description are required' });
+    return;
+  }
+
+  if (status !== undefined && !isApplicationStatus(status)) {
+    res.status(400).json({ error: `Invalid status. Must be one of: ${APPLICATION_STATUSES.join(', ')}` });
     return;
   }
 
@@ -115,9 +123,9 @@ router.get('/:id', authMiddleware, (req, res) => {
     return;
   }
 
-  const logs = db.prepare('SELECT * FROM generation_log WHERE application_id = ? ORDER BY version DESC LIMIT 10').all(id);
-
-  res.json({ application, logs });
+  // Generation logs are served via the dedicated /:id/versions endpoint —
+  // returning a partial top-10 here was unused dead work on every detail load.
+  res.json({ application });
 });
 
 router.patch('/:id', authMiddleware, (req, res) => {
@@ -136,8 +144,13 @@ router.patch('/:id', authMiddleware, (req, res) => {
 
   for (const key of allowed) {
     if (key in req.body) {
+      const value = (req.body as Record<string, string | number | null>)[key];
+      if (key === 'status' && !isApplicationStatus(value)) {
+        res.status(400).json({ error: `Invalid status. Must be one of: ${APPLICATION_STATUSES.join(', ')}` });
+        return;
+      }
       updates.push(`${key} = ?`);
-      params.push((req.body as Record<string, string | number | null>)[key]);
+      params.push(value);
     }
   }
 
@@ -298,10 +311,13 @@ router.post('/:id/notes', authMiddleware, (req, res) => {
 
 router.patch('/:id/notes/:noteId', authMiddleware, (req, res) => {
   const db = getDb();
-  const { noteId } = req.params;
+  const { id, noteId } = req.params;
   const { headline, body } = req.body as { headline?: string; body?: string };
 
-  const note = db.prepare('SELECT id FROM application_notes WHERE id = ?').get(noteId);
+  // Scope the note to the application in the URL so /jobs/A/notes/<note-of-B> doesn't update.
+  const note = db.prepare(
+    'SELECT id FROM application_notes WHERE id = ? AND application_id = ?'
+  ).get(noteId, id);
   if (!note) {
     res.status(404).json({ error: 'Note not found' });
     return;
@@ -327,9 +343,11 @@ router.patch('/:id/notes/:noteId', authMiddleware, (req, res) => {
 
 router.delete('/:id/notes/:noteId', authMiddleware, (req, res) => {
   const db = getDb();
-  const { noteId } = req.params;
+  const { id, noteId } = req.params;
 
-  const note = db.prepare('SELECT id FROM application_notes WHERE id = ?').get(noteId);
+  const note = db.prepare(
+    'SELECT id FROM application_notes WHERE id = ? AND application_id = ?'
+  ).get(noteId, id);
   if (!note) {
     res.status(404).json({ error: 'Note not found' });
     return;
