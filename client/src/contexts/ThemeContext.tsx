@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-interface ThemeDefinition {
+export interface ThemeDefinition {
   name: string;
   mode: 'light' | 'dark';
   bg: string;
@@ -14,6 +14,8 @@ interface ThemeDefinition {
   previewColors: string[];
 }
 
+const APPLYR_GRADIENT = 'linear-gradient(135deg, #e879f9 0%, #a21caf 100%)';
+
 export const THEMES: ThemeDefinition[] = [
   {
     name: 'Default',
@@ -22,11 +24,50 @@ export const THEMES: ThemeDefinition[] = [
     surface: '#ffffff',
     surface2: '#e8eaed',
     border: 'rgba(0,0,0,0.09)',
-    text: '#0f172a',
-    text2: '#64748b',
+    text: '#09090b',
+    text2: '#71717a',
     accent: '#a855f7',
-    gradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-    previewColors: ['#e2e8f0', '#c8d0e0', '#a855f7'],
+    gradient: APPLYR_GRADIENT,
+    previewColors: ['#e8eaed', '#d1d5db', '#a855f7'],
+  },
+  {
+    name: 'Dark',
+    mode: 'dark',
+    bg: '#0a0a0f',
+    surface: '#111118',
+    surface2: '#1a1a28',
+    border: 'rgba(168,85,247,0.18)',
+    text: '#f0f0ff',
+    text2: '#a1a1aa',
+    accent: '#c084fc',
+    gradient: APPLYR_GRADIENT,
+    previewColors: ['#111118', '#1a1a28', '#c084fc'],
+  },
+  {
+    name: 'Midnight',
+    mode: 'dark',
+    bg: '#050814',
+    surface: '#0d1117',
+    surface2: '#161b22',
+    border: 'rgba(6,182,212,0.15)',
+    text: '#e2f8ff',
+    text2: '#7d8ea0',
+    accent: '#06b6d4',
+    gradient: 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)',
+    previewColors: ['#161b22', '#0d2a35', '#06b6d4'],
+  },
+  {
+    name: 'Rainbow',
+    mode: 'light',
+    bg: '#f5f0ff',
+    surface: '#ffffff',
+    surface2: '#ede9fe',
+    border: '#ddd6fe',
+    text: '#1a1a2e',
+    text2: '#6b5fa0',
+    accent: '#7c3aed',
+    gradient: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
+    previewColors: ['#fce7f3', '#ede9fe', '#dbeafe'],
   },
   {
     name: 'Ocean',
@@ -74,11 +115,11 @@ export const THEMES: ThemeDefinition[] = [
     surface: '#ffffff',
     surface2: '#f3e8ff',
     border: '#e9d5ff',
-    text: '#1e1b4b',
-    text2: '#6b21a8',
-    accent: '#8b5cf6',
-    gradient: 'linear-gradient(135deg, #a78bfa 0%, #4f46e5 100%)',
-    previewColors: ['#e9d5ff', '#f3e8ff', '#8b5cf6'],
+    text: '#1a0a2e',
+    text2: '#7e5aa2',
+    accent: '#9333ea',
+    gradient: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
+    previewColors: ['#f3e8ff', '#fce7f3', '#e9d5ff'],
   },
   {
     name: 'Nord',
@@ -90,21 +131,8 @@ export const THEMES: ThemeDefinition[] = [
     text: '#2e3440',
     text2: '#4c566a',
     accent: '#5e81ac',
-    gradient: 'linear-gradient(135deg, #81a1c1 0%, #5e81ac 100%)',
+    gradient: 'linear-gradient(135deg, #5e81ac 0%, #81a1c1 100%)',
     previewColors: ['#e5e9f0', '#d8dee9', '#5e81ac'],
-  },
-  {
-    name: 'Rose',
-    mode: 'light',
-    bg: '#fff1f2',
-    surface: '#ffffff',
-    surface2: '#ffe4e6',
-    border: '#fecdd3',
-    text: '#1a0010',
-    text2: '#9f1239',
-    accent: '#e11d48',
-    gradient: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
-    previewColors: ['#ffe4e6', '#fecdd3', '#e11d48'],
   },
   {
     name: 'Mono',
@@ -115,35 +143,9 @@ export const THEMES: ThemeDefinition[] = [
     border: '#dee2e6',
     text: '#212529',
     text2: '#6c757d',
-    accent: '#495057',
-    gradient: 'linear-gradient(135deg, #495057 0%, #212529 100%)',
-    previewColors: ['#e9ecef', '#dee2e6', '#495057'],
-  },
-  {
-    name: 'Dark',
-    mode: 'dark',
-    bg: '#0f172a',
-    surface: '#1e293b',
-    surface2: '#334155',
-    border: 'rgba(168,85,247,0.18)',
-    text: '#f1f5f9',
-    text2: '#94a3b8',
-    accent: '#a855f7',
-    gradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-    previewColors: ['#1e293b', '#334155', '#a855f7'],
-  },
-  {
-    name: 'Midnight',
-    mode: 'dark',
-    bg: '#020817',
-    surface: '#0f172a',
-    surface2: '#1e293b',
-    border: 'rgba(168,85,247,0.15)',
-    text: '#e2e8f0',
-    text2: '#94a3b8',
-    accent: '#a855f7',
-    gradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-    previewColors: ['#0f172a', '#1e293b', '#a855f7'],
+    accent: '#343a40',
+    gradient: 'linear-gradient(135deg, #343a40 0%, #495057 100%)',
+    previewColors: ['#f1f3f5', '#e9ecef', '#dee2e6'],
   },
 ];
 
@@ -152,7 +154,6 @@ interface ThemeContextValue {
   themeName: string;
   setThemeName: (name: string) => void;
   setThemeByName: (name: string) => void;
-  // Legacy compat
   toggleTheme: () => void;
 }
 
@@ -164,37 +165,29 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggleTheme: () => {},
 });
 
-function applyTheme(t: ThemeDefinition) {
+function applyTheme(theme: ThemeDefinition) {
   const root = document.documentElement;
-  root.style.setProperty('--theme-bg', t.bg);
-  root.style.setProperty('--theme-surface', t.surface);
-  root.style.setProperty('--theme-surface2', t.surface2);
-  root.style.setProperty('--theme-border', t.border);
-  root.style.setProperty('--theme-text', t.text);
-  root.style.setProperty('--theme-text2', t.text2);
-  root.style.setProperty('--theme-accent', t.accent);
-  root.style.setProperty('--theme-gradient', t.gradient);
-  root.style.setProperty('--theme-shadow', '0 1px 4px rgba(0,0,0,0.06)');
-  root.style.setProperty('--theme-shadow-hover', `0 4px 20px rgba(0,0,0,0.12), 0 0 0 1px ${t.accent}20`);
-  if (t.mode === 'dark') {
-    root.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
-  }
+  root.classList.toggle('dark', theme.mode === 'dark');
+  root.style.setProperty('--theme-bg', theme.bg);
+  root.style.setProperty('--theme-surface', theme.surface);
+  root.style.setProperty('--theme-surface2', theme.surface2);
+  root.style.setProperty('--theme-border', theme.border);
+  root.style.setProperty('--theme-text', theme.text);
+  root.style.setProperty('--theme-text2', theme.text2);
+  root.style.setProperty('--theme-accent', theme.accent);
+  root.style.setProperty('--theme-gradient', theme.gradient);
 
-  // Keep the mobile-browser chrome (iOS Safari, Android Chrome) in sync with the
-  // active theme so the status bar / address bar matches the surface color the
-  // user actually sees. Without this, the hardcoded purple from index.html stays
-  // even when the user picks Forest, Ocean, etc.
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
   if (themeColorMeta) {
-    themeColorMeta.setAttribute('content', t.surface);
+    themeColorMeta.setAttribute('content', theme.surface);
   }
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeName, setThemeNameState] = useState<string>(() => {
-    return localStorage.getItem('applyr_theme_name') || 'Default';
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [themeName, setThemeNameState] = useState(() => {
+    const stored = localStorage.getItem('applyr_theme_name');
+    if (stored === 'Rose') return 'Rainbow';
+    return stored || 'Default';
   });
 
   const theme = THEMES.find(t => t.name === themeName) || THEMES[0];
@@ -205,11 +198,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   const setThemeName = (name: string) => setThemeNameState(name);
-
-  // Legacy: toggle between Default and Dark
-  const toggleTheme = () => {
-    setThemeName(theme.mode === 'dark' ? 'Default' : 'Dark');
-  };
+  const toggleTheme = () => setThemeName(theme.mode === 'dark' ? 'Default' : 'Dark');
 
   return (
     <ThemeContext.Provider value={{ theme, themeName, setThemeName, setThemeByName: setThemeName, toggleTheme }}>

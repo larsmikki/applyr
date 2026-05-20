@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { PlusCircle, ArrowRight, AlertCircle, Play } from 'lucide-react';
 import { getApplications, getAnalyticsSummary, getAnalyticsTrends, getAnalyticsCompanies } from '@/api';
 import type { Application, AnalyticsSummary } from '@/types';
 import FitScoreRing from '@/components/FitScoreRing';
+import { Button } from '@/components/ui';
 
 function StatCard({ label, value }: {
   label: string;
@@ -46,7 +47,7 @@ const STAGE_COLORS: Record<string, string> = {
   applied: '#3b82f6',
   interview: '#a855f7',
   offer: '#22c55e',
-  rejected: '#ef4444',
+  rejected: '#dc2626',
   withdrawn: '#6b7280',
 };
 
@@ -133,6 +134,7 @@ function weekLabel(): string {
 
 export default function FrontPage() {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [recentApps, setRecentApps] = useState<Application[]>([]);
   const [inProgressApps, setInProgressApps] = useState<Application[]>([]);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
@@ -167,7 +169,7 @@ export default function FrontPage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -177,9 +179,9 @@ export default function FrontPage() {
       <div className="p-8 flex flex-col items-center justify-center gap-4">
         <AlertCircle className="w-10 h-10 text-red-400" />
         <p className="text-gray-600 dark:text-gray-400 font-medium">Failed to load dashboard data</p>
-        <button onClick={loadData} className="btn-secondary flex items-center gap-2">
+        <Button onClick={loadData} className="flex items-center gap-2">
           <Play className="w-4 h-4" /> Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -203,10 +205,10 @@ export default function FrontPage() {
             </p>
           )}
         </div>
-        <Link to="/apply" className="btn-primary flex items-center gap-2">
+        <Button variant="primary" onClick={() => navigate('/apply')} className="flex items-center gap-2">
           <PlusCircle className="w-4 h-4" />
           New Application
-        </Link>
+        </Button>
       </div>
 
       {orphanApps.length > 0 && (

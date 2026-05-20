@@ -3,11 +3,9 @@ import { useStream } from '@/hooks/useStream';
 import { getVaultDocuments, getCVReviewsByDoc, deleteCVReview, streamRewriteCV, patchCVRewriteResult, streamGapAnalysis, saveGapAnalysis, getGapAnalysisHistory, deleteGapAnalysis, saveCareerGuidance, getCareerGuidanceHistory, deleteCareerGuidance, getRecentApplicationRoles } from '@/api';
 import { VaultDocument, CVReview } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useToast } from '@/hooks/useToast';
+import { Button, Input, Modal, Select, useToast } from '@/components/ui';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import MarkdownPreview from '@/components/MarkdownPreview';
-import Modal from '@/components/Modal';
-import ToastStack from '@/components/Toast';
 import { Copy, Trash2, History, Loader2, RefreshCw, Save, TrendingUp, Compass, FileText, X } from 'lucide-react';
 
 const ROLE_PRESETS = ['CEO / MD', 'CxO', 'VP', 'Director', 'Head of', 'Manager / Team Lead', 'Senior IC'];
@@ -40,7 +38,7 @@ const TABS: { id: CvPageTab; label: string; icon: React.ElementType }[] = [
 export default function AnalysisPage() {
   useDocumentTitle('Analysis');
   const { theme } = useTheme();
-  const { toasts, addToast, removeToast } = useToast();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<CvPageTab>('cv');
   const [deleteTarget, setDeleteTarget] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
@@ -359,8 +357,6 @@ export default function AnalysisPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <ToastStack toasts={toasts} onRemove={removeToast} />
-
       <div className="space-y-2">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>Analysis</h1>
         <p style={{ color: theme.text2 }}>Evaluate your CV, identify gaps, and discover roles where you'll shine.</p>
@@ -390,26 +386,26 @@ export default function AnalysisPage() {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary-400" />
+                <FileText className="w-5 h-5 text-accent" />
                 <h2 className="text-lg font-semibold" style={{ color: theme.text }}>CV Analysis</h2>
               </div>
               <p className="text-sm" style={{ color: theme.text2 }}>
                 Get a direct, practical CV review with prioritized improvements for your target roles.
               </p>
             </div>
-            <button
-              className="btn-primary shrink-0 flex items-center gap-1.5 text-sm py-2 px-4"
+            <Button variant="primary"
+              className="shrink-0 flex items-center gap-1.5 text-sm py-2 px-4"
               onClick={handleReview}
               disabled={!selectedDocId || loading}
             >
               {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing…</> : 'Analyze CV'}
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-2">
-            <label className="label" style={{ color: theme.text }}>Select CV</label>
-            <select
-              className="input w-full"
+            <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1" style={{ color: theme.text }}>Select CV</label>
+            <Select
+              className="w-full"
               style={{ background: theme.surface2, color: theme.text, borderColor: theme.border }}
               value={selectedDocId}
               onChange={(e) => setSelectedDocId(e.target.value)}
@@ -422,13 +418,13 @@ export default function AnalysisPage() {
                   <option key={doc.id} value={doc.id} style={{ background: theme.surface, color: theme.text }}>{doc.label}</option>
                 ))
               )}
-            </select>
+            </Select>
           </div>
 
           {/* Target role selector */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="label mb-0" style={{ color: theme.text }}>Target roles</label>
+              <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1 mb-0" style={{ color: theme.text }}>Target roles</label>
               {selectedTargetRoles.length > 0 && (
                 <button onClick={() => setSelectedTargetRoles([])} className="text-xs" style={{ color: theme.text2 }}>Clear all</button>
               )}
@@ -499,29 +495,28 @@ export default function AnalysisPage() {
 
             {/* Custom input */}
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 placeholder="Add custom role…"
                 value={customRoleInput}
                 onChange={e => setCustomRoleInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') addCustomRole(); }}
-                className="input text-xs flex-1"
-                style={{ background: theme.surface2, color: theme.text, borderColor: theme.border, padding: '6px 10px' }}
-              />
-              <button
+                className="text-xs flex-1"
+                style={{ background: theme.surface2, color: theme.text, borderColor: theme.border, padding: '6px 10px' }} />
+              <Button
                 onClick={addCustomRole}
                 disabled={!customRoleInput.trim()}
-                className="btn-secondary text-xs px-3"
+                className="text-xs px-3"
               >
                 Add
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* Target department selector */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="label mb-0" style={{ color: theme.text }}>Target departments</label>
+              <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1 mb-0" style={{ color: theme.text }}>Target departments</label>
               {selectedTargetDepartments.length > 0 && (
                 <button onClick={() => setSelectedTargetDepartments([])} className="text-xs" style={{ color: theme.text2 }}>Clear all</button>
               )}
@@ -567,22 +562,21 @@ export default function AnalysisPage() {
             )}
 
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 placeholder="Add custom department..."
                 value={customDepartmentInput}
                 onChange={e => setCustomDepartmentInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') addCustomDepartment(); }}
-                className="input text-xs flex-1"
-                style={{ background: theme.surface2, color: theme.text, borderColor: theme.border, padding: '6px 10px' }}
-              />
-              <button
+                className="text-xs flex-1"
+                style={{ background: theme.surface2, color: theme.text, borderColor: theme.border, padding: '6px 10px' }} />
+              <Button
                 onClick={addCustomDepartment}
                 disabled={!customDepartmentInput.trim()}
-                className="btn-secondary text-xs px-3"
+                className="text-xs px-3"
               >
                 Add
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -593,7 +587,7 @@ export default function AnalysisPage() {
           {(text || loading) && (
             <div className="space-y-6">
               {score && (
-                <div className="flex items-center justify-center p-8 bg-gradient-to-br from-primary-500 to-pink-500 rounded-2xl shadow-lg">
+                <div className="flex items-center justify-center p-8 bg-gradient-to-br from-accent to-pink-500 rounded-2xl shadow-lg">
                   <div className="text-center">
                     <div className="text-sm uppercase tracking-widest text-white/80 font-semibold">CV Score</div>
                     <div className="text-7xl font-black text-white">{score}<span className="text-2xl opacity-60">/10</span></div>
@@ -605,12 +599,11 @@ export default function AnalysisPage() {
                 <h3 className="text-base font-semibold" style={{ color: theme.text }}>Analysis</h3>
                 <div className="flex items-center gap-2">
                   {text && (
-                    <button
+                    <Button
                       onClick={() => { navigator.clipboard.writeText(text); addToast('Copied to clipboard', 'success'); }}
-                      className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                    >
+                      className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                       <Copy className="w-3.5 h-3.5" /> Copy
-                    </button>
+                    </Button>
                   )}
                   {reviewDone && !rewriteLoading && !rewriteResult && (
                     <div className="flex items-center gap-3">
@@ -622,16 +615,16 @@ export default function AnalysisPage() {
                           max={10}
                           value={maxIterations}
                           onChange={e => setMaxIterations(Number(e.target.value))}
-                          className="w-20 accent-primary-500"
+                          className="w-20 accent-accent"
                         />
                         <span className="text-xs font-semibold w-3 text-center" style={{ color: theme.text }}>{maxIterations}</span>
                       </div>
-                      <button
+                      <Button variant="primary"
                         onClick={handleRewrite}
-                        className="btn-primary flex items-center gap-1.5 text-xs py-1 px-2.5"
+                        className="flex items-center gap-1.5 text-xs py-1 px-2.5"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> Rewrite CV
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -640,7 +633,7 @@ export default function AnalysisPage() {
               <div className="p-6 rounded-xl border border-white/10 prose max-w-none" style={{ background: theme.surface2, color: theme.text }}>
                 <div>
                   {text ? <MarkdownPreview content={text} /> : (
-                    loading && <span className="inline-block w-2 h-5 ml-1 bg-primary-500 animate-pulse" />
+                    loading && <span className="inline-block w-2 h-5 ml-1 bg-accent animate-pulse" />
                   )}
                 </div>
               </div>
@@ -652,13 +645,13 @@ export default function AnalysisPage() {
             <div className="p-6 rounded-xl border border-white/10 space-y-5" style={{ background: theme.surface2 }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <RefreshCw className={`w-5 h-5 text-primary-400 ${rewriteLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-5 h-5 text-accent ${rewriteLoading ? 'animate-spin' : ''}`} />
                   <h3 className="text-base font-semibold" style={{ color: theme.text }}>
                     CV rewrite
                   </h3>
                 </div>
                 {rewriteResult && (
-                  <button onClick={resetRewrite} className="btn-secondary text-xs py-1 px-2.5">Reset</button>
+                  <Button onClick={resetRewrite} className="text-xs py-1 px-2.5">Reset</Button>
                 )}
               </div>
 
@@ -669,7 +662,7 @@ export default function AnalysisPage() {
                   ))}
                   {rewriteStatus && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-400 shrink-0" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-accent shrink-0" />
                       <span style={{ color: theme.text2 }}>{rewriteStatus}</span>
                     </div>
                   )}
@@ -682,7 +675,7 @@ export default function AnalysisPage() {
 
               {rewriteResult && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center p-6 bg-gradient-to-br from-primary-500 to-pink-500 rounded-xl shadow-lg">
+                  <div className="flex items-center justify-center p-6 bg-gradient-to-br from-accent to-pink-500 rounded-xl shadow-lg">
                     <div className="text-center">
                       <div className="text-xs uppercase tracking-widest text-white/80 font-semibold mb-1">
                         Final Score after {rewriteResult.iterations} iteration{rewriteResult.iterations !== 1 ? 's' : ''}
@@ -698,7 +691,7 @@ export default function AnalysisPage() {
                       <button
                         key={tab}
                         onClick={() => setRewriteTab(tab)}
-                        className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${rewriteTab === tab ? 'bg-primary-500 text-white' : ''}`}
+                        className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${rewriteTab === tab ? 'bg-accent text-white' : ''}`}
                         style={rewriteTab !== tab ? { color: theme.text2 } : {}}
                       >
                         {tab === 'cv' ? 'Rewritten CV' : 'Final Review'}
@@ -707,12 +700,11 @@ export default function AnalysisPage() {
                   </div>
 
                   <div className="flex justify-end gap-2">
-                    <button
+                    <Button
                       onClick={() => navigator.clipboard.writeText(rewriteTab === 'cv' ? rewriteResult.rewrittenCV : rewriteResult.finalReview).then(() => addToast('Copied to clipboard', 'success'))}
-                      className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                    >
+                      className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                       <Copy className="w-3.5 h-3.5" /> Copy
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="p-6 rounded-xl border border-white/10" style={{ background: theme.surface, color: theme.text }}>
@@ -743,7 +735,7 @@ export default function AnalysisPage() {
                     return (
                       <div
                         key={review.id}
-                        className="flex items-center justify-between p-3 rounded-lg border border-white/10 hover:border-primary-500/50 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-lg border border-white/10 hover:border-accent/50 transition-colors"
                         style={{ background: theme.surface2 }}
                       >
                         <div className="flex items-center gap-2">
@@ -751,14 +743,14 @@ export default function AnalysisPage() {
                             {new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
                           {displayScore != null && (
-                            <span className="text-sm font-semibold text-primary-400">{displayScore}/10</span>
+                            <span className="text-sm font-semibold text-accent">{displayScore}/10</span>
                           )}
                           {review.rewritten_cv && (
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400">rewritten</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent">rewritten</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <button
+                          <Button
                             onClick={() => {
                               resetRewrite();
                               reset();
@@ -773,10 +765,9 @@ export default function AnalysisPage() {
                                 });
                               }
                             }}
-                            className="btn-secondary text-xs py-1 px-3"
-                          >
+                            className="text-xs py-1 px-3">
                             View
-                          </button>
+                          </Button>
                           <button
                             onClick={() => handleDeleteReview(review.id)}
                             className="p-2 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
@@ -800,20 +791,20 @@ export default function AnalysisPage() {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary-400" />
+                <TrendingUp className="w-5 h-5 text-accent" />
                 <h2 className="text-lg font-semibold" style={{ color: theme.text }}>Gap analysis</h2>
               </div>
               <p className="text-sm" style={{ color: theme.text2 }}>
                 Synthesises your latest fit analyses (up to 10) into a summary of recurring gaps and concrete CV changes.
               </p>
             </div>
-            <button
-              className="btn-primary shrink-0 flex items-center gap-1.5 text-sm py-2 px-4"
+            <Button variant="primary"
+              className="shrink-0 flex items-center gap-1.5 text-sm py-2 px-4"
               onClick={handleGapAnalysis}
               disabled={gapLoading}
             >
               {gapLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Analysing…</> : 'Run Gap Analysis'}
-            </button>
+            </Button>
           </div>
 
           {gapError && (
@@ -826,27 +817,25 @@ export default function AnalysisPage() {
               <div className="flex justify-end gap-2">
                 {gapText && !gapLoading && (
                   <>
-                    <button
+                    <Button
                       onClick={() => handleCopyGap(gapText)}
-                      className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                    >
+                      className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                       <Copy className="w-3.5 h-3.5" />{gapCopied ? 'Copied!' : 'Copy'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       disabled={gapSaving || gapSaved}
                       onClick={() => handleSaveGap(gapText)}
-                      className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                    >
+                      className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                       {gapSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                       {gapSaved ? 'Saved' : 'Save'}
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>
               <div className="p-6 rounded-xl border border-white/10 prose max-w-none" style={{ background: theme.surface2, color: theme.text }}>
                 {gapText
                   ? <MarkdownPreview content={gapText} />
-                  : <span className="inline-block w-2 h-5 ml-1 bg-primary-500 animate-pulse" />}
+                  : <span className="inline-block w-2 h-5 ml-1 bg-accent animate-pulse" />}
               </div>
             </div>
           )}
@@ -855,13 +844,12 @@ export default function AnalysisPage() {
           {gapActiveContent && (
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <button onClick={() => setGapActiveContent(null)} className="btn-secondary text-xs py-1 px-2.5">← Back</button>
-                <button
+                <Button onClick={() => setGapActiveContent(null)} className="text-xs py-1 px-2.5">← Back</Button>
+                <Button
                   onClick={() => handleCopyGap(gapActiveContent)}
-                  className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                >
+                  className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                   <Copy className="w-3.5 h-3.5" />{gapCopied ? 'Copied!' : 'Copy'}
-                </button>
+                </Button>
               </div>
               <div className="p-6 rounded-xl border border-white/10 prose max-w-none" style={{ background: theme.surface2, color: theme.text }}>
                 <MarkdownPreview content={gapActiveContent} />
@@ -879,19 +867,18 @@ export default function AnalysisPage() {
               {gapHistory.map(g => (
                 <div
                   key={g.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-white/10 hover:border-primary-500/50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-white/10 hover:border-accent/50 transition-colors"
                   style={{ background: theme.surface2 }}
                 >
                   <span className="text-sm" style={{ color: theme.text }}>
                     {new Date(g.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <Button
                       onClick={() => { gapReset(); setGapActiveContent(g.content); }}
-                      className="btn-secondary text-xs py-1 px-3"
-                    >
+                      className="text-xs py-1 px-3">
                       View
-                    </button>
+                    </Button>
                     <button
                       onClick={() => handleDeleteGap(g.id)}
                       className="p-2 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
@@ -920,20 +907,20 @@ export default function AnalysisPage() {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <Compass className="w-5 h-5 text-primary-400" />
+                <Compass className="w-5 h-5 text-accent" />
                 <h2 className="text-lg font-semibold" style={{ color: theme.text }}>Career guidance</h2>
               </div>
               <p className="text-sm" style={{ color: theme.text2 }}>
                 Based on your default CV, discover the roles and job titles where you'd score 90+ — your strengths, your best matches.
               </p>
             </div>
-            <button
-              className="btn-primary shrink-0 flex items-center gap-1.5 text-sm py-2 px-4"
+            <Button variant="primary"
+              className="shrink-0 flex items-center gap-1.5 text-sm py-2 px-4"
               onClick={() => { guidanceReset(); guidanceStart('/career-guidance', {}); }}
               disabled={guidanceLoading}
             >
               {guidanceLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</> : 'Generate Guidance'}
-            </button>
+            </Button>
           </div>
 
           {guidanceError && (
@@ -946,27 +933,25 @@ export default function AnalysisPage() {
               <div className="flex justify-end gap-2">
                 {guidanceText && !guidanceLoading && (
                   <>
-                    <button
+                    <Button
                       onClick={() => handleCopyGuidance(guidanceText)}
-                      className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                    >
+                      className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                       <Copy className="w-3.5 h-3.5" />{guidanceCopied ? 'Copied!' : 'Copy'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       disabled={guidanceSaving || guidanceSaved}
                       onClick={() => handleSaveGuidance(guidanceText)}
-                      className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                    >
+                      className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                       {guidanceSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                       {guidanceSaved ? 'Saved' : 'Save'}
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>
               <div className="p-6 rounded-xl border border-white/10 prose max-w-none" style={{ background: theme.surface2, color: theme.text }}>
                 {guidanceText
                   ? <MarkdownPreview content={guidanceText} />
-                  : <span className="inline-block w-2 h-5 ml-1 bg-primary-500 animate-pulse" />}
+                  : <span className="inline-block w-2 h-5 ml-1 bg-accent animate-pulse" />}
               </div>
             </div>
           )}
@@ -975,13 +960,12 @@ export default function AnalysisPage() {
           {guidanceActiveContent && (
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <button onClick={() => setGuidanceActiveContent(null)} className="btn-secondary text-xs py-1 px-2.5">← Back</button>
-                <button
+                <Button onClick={() => setGuidanceActiveContent(null)} className="text-xs py-1 px-2.5">← Back</Button>
+                <Button
                   onClick={() => handleCopyGuidance(guidanceActiveContent)}
-                  className="btn-secondary flex items-center gap-1.5 text-xs py-1 px-2.5"
-                >
+                  className="flex items-center gap-1.5 text-xs py-1 px-2.5">
                   <Copy className="w-3.5 h-3.5" />{guidanceCopied ? 'Copied!' : 'Copy'}
-                </button>
+                </Button>
               </div>
               <div className="p-6 rounded-xl border border-white/10 prose max-w-none" style={{ background: theme.surface2, color: theme.text }}>
                 <MarkdownPreview content={guidanceActiveContent} />
@@ -999,19 +983,18 @@ export default function AnalysisPage() {
               {guidanceHistory.map(g => (
                 <div
                   key={g.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-white/10 hover:border-primary-500/50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-white/10 hover:border-accent/50 transition-colors"
                   style={{ background: theme.surface2 }}
                 >
                   <span className="text-sm" style={{ color: theme.text }}>
                     {new Date(g.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                   <div className="flex items-center gap-2">
-                    <button
+                    <Button
                       onClick={() => { guidanceReset(); setGuidanceActiveContent(g.content); }}
-                      className="btn-secondary text-xs py-1 px-3"
-                    >
+                      className="text-xs py-1 px-3">
                       View
-                    </button>
+                    </Button>
                     <button
                       onClick={() => handleDeleteGuidance(g.id)}
                       className="p-2 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
@@ -1043,13 +1026,12 @@ export default function AnalysisPage() {
         <div className="space-y-4">
           <p className="text-sm text-gray-700 dark:text-gray-300">{deleteTarget?.message} This cannot be undone.</p>
           <div className="flex justify-end gap-2">
-            <button onClick={() => setDeleteTarget(null)} className="btn-secondary">Cancel</button>
-            <button
+            <Button onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="danger"
               onClick={() => { deleteTarget?.onConfirm(); setDeleteTarget(null); }}
-              className="btn-danger flex items-center gap-2"
-            >
+              className="flex items-center gap-2">
               <Trash2 className="w-4 h-4" /> Delete
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

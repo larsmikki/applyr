@@ -1,97 +1,26 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@custom-variant dark (&:where(.dark, .dark *));
+@import "./tokens.css";
 
-@theme {
-  --color-primary-50: #fdf4ff;
-  --color-primary-100: #fae8ff;
-  --color-primary-200: #f5d0fe;
-  --color-primary-300: #f0abfc;
-  --color-primary-400: #e879f9;
-  --color-primary-500: #d946ef;
-  --color-primary-600: #a855f7;
-  --color-primary-700: #9333ea;
-  --color-primary-800: #7e22ce;
-  --color-primary-900: #6b21a8;
+/* Applyr keeps the app brand static across themes. Individual themes still
+   update --theme-accent for active states and swatches. */
+:root {
+  --brand-gradient: linear-gradient(135deg, #e879f9 0%, #a21caf 100%);
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
-  body {
-    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--theme-bg, #f8fafc);
-    color: var(--theme-text, #0f172a);
-  }
-  h1, h2, h3 {
-    text-wrap: balance;
-  }
   .dark {
     color-scheme: dark;
   }
-}
 
-/* Gradient text — yellow → green */
-.gradient-text {
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Default CSS variable values before JS hydrates */
-:root {
-  --theme-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  --theme-shadow-hover: 0 4px 20px rgba(0,0,0,0.12), 0 0 0 1px #a855f720;
-}
-
-/* Surface shadow — applied to all card/panel containers */
-.rounded-xl {
-  box-shadow: var(--theme-shadow);
-}
-.rounded-xl:hover {
-  box-shadow: var(--theme-shadow-hover);
-}
-
-/* Card hover lift */
-.card-hover {
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
-}
-.card-hover:hover {
-  transform: translateY(-1px);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.5); }
-
-/* Component classes */
-@layer components {
-  .input {
-    @apply w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors;
-  }
-
-  .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center px-4 py-2.5 text-white text-sm font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed;
-    transition: box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
-    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-    box-shadow: 0 4px 14px rgba(168,85,247,0.3);
-  }
-  .btn-primary:hover:not(:disabled) {
-    box-shadow: 0 6px 20px rgba(236,72,153,0.4);
-    filter: brightness(1.05);
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-danger {
-    @apply inline-flex items-center px-4 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 text-sm font-medium rounded-lg border border-red-200 dark:border-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  h1, h2, h3 {
+    text-wrap: balance;
   }
 }
 
@@ -106,9 +35,13 @@
   margin-left: 1px;
 }
 
-/* Respect the user's reduced-motion preference: kill ambient transitions,
-   transforms, and decorative animations so vestibular-sensitive users aren't
-   forced to watch hover lifts, blinks, and progress sweeps. */
+/* Toast slide-in (used by ui/Toast.tsx). */
+@keyframes toast-slide-in {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+.toast-slide-in { animation: toast-slide-in 200ms ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
@@ -120,10 +53,6 @@
   .cursor-blink::after { animation: none; }
 }
 
-/* Printable cover letters: strip the chrome (nav, footer, toasts, modals,
-   buttons) and ambient styling. The page-level <header>, <footer>, and any
-   element marked .no-print is hidden; backgrounds reset to white; box shadows
-   removed; the prose area uses a serif so the printout reads like a letter. */
 @media print {
   body {
     background: #fff !important;
@@ -137,7 +66,6 @@
     color: #000 !important;
     font-family: Georgia, 'Times New Roman', serif !important;
   }
-  /* Avoid orphan headings */
   h1, h2, h3 { page-break-after: avoid; }
   pre, blockquote { page-break-inside: avoid; }
 }

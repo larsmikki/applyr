@@ -13,11 +13,9 @@ import FitScoreRing from '@/components/FitScoreRing';
 import MarkdownPreview from '@/components/MarkdownPreview';
 import StreamingText from '@/components/StreamingText';
 import { useStream } from '@/hooks/useStream';
-import { useToast } from '@/hooks/useToast';
+import { Button, Input, Modal, Select, Textarea, useToast } from '@/components/ui';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import ToastStack from '@/components/Toast';
 import { useTheme } from '@/contexts/ThemeContext';
-import Modal from '@/components/Modal';
 
 type Tab = 'cover_letter' | 'job_description' | 'analysis' | 'history' | 'prep';
 
@@ -199,7 +197,7 @@ export default function ApplicationDetailPage() {
   const { theme } = useTheme();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toasts, addToast, removeToast } = useToast();
+  const { addToast } = useToast();
 
   const [app, setApp] = useState<Application | null>(null);
   const [logs, setLogs] = useState<GenerationLog[]>([]);
@@ -495,7 +493,7 @@ export default function ApplicationDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -504,7 +502,7 @@ export default function ApplicationDetailPage() {
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500">Application not found</p>
-        <button onClick={() => navigate('/history')} className="btn-secondary mt-4">Back to History</button>
+        <Button onClick={() => navigate('/history')} className="mt-4">Back to History</Button>
       </div>
     );
   }
@@ -512,8 +510,6 @@ export default function ApplicationDetailPage() {
   return (
     <>
     <div className="p-8 max-w-5xl mx-auto">
-      <ToastStack toasts={toasts} onRemove={removeToast} />
-
       {/* Breadcrumb */}
       <div className="mb-3 flex items-center gap-2 text-xs">
         <button
@@ -547,16 +543,16 @@ export default function ApplicationDetailPage() {
                 {app.company}
               </h1>
               <div className="relative inline-flex items-center">
-                <select
+                <Select
                   value={app.status}
                   onChange={e => handleStatusChange(e.target.value)}
-                  className="appearance-none pl-2.5 pr-7 py-0.5 rounded-full text-xs font-medium cursor-pointer border-0 focus:ring-2 focus:ring-primary-500"
+                  className="appearance-none pl-2.5 pr-7 py-0.5 rounded-full text-xs font-medium cursor-pointer border-0 focus:ring-2 focus:ring-accent/20"
                   style={{ backgroundColor: 'transparent', color: 'inherit' }}
                 >
                   {STATUS_OPTIONS.map(s => (
                     <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                   ))}
-                </select>
+                </Select>
                 <StatusBadge status={app.status} className="pointer-events-none absolute inset-0" />
                 <ChevronDown className="pointer-events-none absolute right-1.5 w-3 h-3 opacity-60" />
               </div>
@@ -578,13 +574,13 @@ export default function ApplicationDetailPage() {
             {app.fit_score !== undefined && app.fit_score !== null && (
               <FitScoreRing score={app.fit_score} size={64} />
             )}
-            <button
+            <Button variant="danger"
               onClick={handleDelete}
               disabled={deleting}
-              className="btn-danger flex items-center gap-2 text-sm"
+              className="flex items-center gap-2 text-sm"
             >
               <Trash2 className="w-4 h-4" /> Delete
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -609,7 +605,7 @@ export default function ApplicationDetailPage() {
               onClick={() => setTab(tabId)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${
                 tab === tabId
-                  ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                  ? 'border-accent text-accent dark:text-accent'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
@@ -638,43 +634,41 @@ export default function ApplicationDetailPage() {
                 <div className="text-center py-8">
                   <FileText className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
                   <p className="text-gray-500 dark:text-gray-400">No cover letter generated yet</p>
-                  <button onClick={() => navigate(`/apply?applicationId=${id}&step=${app?.fit_analysis ? 3 : 2}`)} className="btn-primary mt-3">Generate one</button>
+                  <Button variant="primary" onClick={() => navigate(`/apply?applicationId=${id}&step=${app?.fit_analysis ? 3 : 2}`)} className="mt-3">Generate one</Button>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
-                      <label className="label mb-0">Version:</label>
-                      <select
+                      <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1 mb-0">Version:</label>
+                      <Select
                         value={selectedVersion}
                         onChange={e => setSelectedVersion(e.target.value)}
-                        className="input w-48"
-                      >
+                        className="w-48">
                         {logs.map(log => (
                           <option key={log.id} value={log.id}>
                             v{log.version} — {new Date(log.created_at).toLocaleDateString()}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
                         onClick={() => setRefineOpen(v => !v)}
-                        className="btn-secondary flex items-center gap-2 text-sm"
-                      >
+                        className="flex items-center gap-2 text-sm">
                         <Wand2 className="w-4 h-4" /> Refine
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={handleRegenerateOdt}
                         disabled={regeneratingOdt}
-                        className="btn-secondary flex items-center gap-2 text-sm"
+                        className="flex items-center gap-2 text-sm"
                         title="Re-create ODT, PDF and copy attachments from the latest cover letter version"
                       >
                         {regeneratingOdt
                           ? <Loader2 className="w-4 h-4 animate-spin" />
                           : <RefreshCw className="w-4 h-4" />}
                         Recreate Output Files
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -689,7 +683,7 @@ export default function ApplicationDetailPage() {
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                          <Wand2 className="w-4 h-4 text-primary-500" />
+                          <Wand2 className="w-4 h-4 text-accent" />
                           Refine this letter
                         </h3>
                         <button
@@ -699,22 +693,21 @@ export default function ApplicationDetailPage() {
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <textarea
+                      <Textarea
                         placeholder="Make it more concise, add more emphasis on leadership, change the opening hook..."
                         value={refineInstruction}
                         onChange={e => setRefineInstruction(e.target.value)}
                         rows={3}
-                        className="input resize-y"
-                      />
+                        className="resize-y" />
 
-                      <button
+                      <Button variant="primary"
                         onClick={handleRefine}
                         disabled={!refineInstruction.trim() || refineStream.loading}
-                        className="btn-primary flex items-center gap-2"
+                        className="flex items-center gap-2"
                       >
                         {refineStream.loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                         Refine
-                      </button>
+                      </Button>
 
                       {(refineStream.text || refineStream.loading) && (
                         <div className={`bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 p-4 ${refineStream.done ? '' : 'max-h-96 overflow-y-auto'}`}>
@@ -762,14 +755,14 @@ export default function ApplicationDetailPage() {
                   </div>
                   {selectedCvId && (
                     <div className="flex justify-end border-t border-gray-200 dark:border-gray-700 pt-3">
-                      <button
+                      <Button
                         onClick={handleAnalyze}
                         disabled={analyzeStream.loading}
-                        className="btn-secondary flex items-center gap-2 text-sm"
+                        className="flex items-center gap-2 text-sm"
                       >
                         <Play className="w-3.5 h-3.5" />
                         Recreate Fit Analysis
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -798,23 +791,22 @@ export default function ApplicationDetailPage() {
                   {app.job_description && selectedCvId ? (
                     <div className="mt-4 space-y-3">
                       {cvDocuments.length > 1 && (
-                        <select
+                        <Select
                           value={selectedCvId}
                           onChange={e => setSelectedCvId(e.target.value)}
-                          className="input w-64 mx-auto block"
-                        >
+                          className="w-64 mx-auto block">
                           {cvDocuments.map(doc => (
                             <option key={doc.id} value={doc.id}>{doc.label}</option>
                           ))}
-                        </select>
+                        </Select>
                       )}
-                      <button
+                      <Button variant="primary"
                         onClick={handleAnalyze}
-                        className="btn-primary flex items-center gap-2 mx-auto"
+                        className="flex items-center gap-2 mx-auto"
                       >
                         <Play className="w-4 h-4" />
                         Run Fit Analysis
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -836,12 +828,12 @@ export default function ApplicationDetailPage() {
             <div className="space-y-6">
               {prepLoading ? (
                 <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-4 border-accent border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : prepGenerating ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <Loader2 className="w-4 h-4 animate-spin text-primary-500" />
+                    <Loader2 className="w-4 h-4 animate-spin text-accent" />
                     Generating interview questions...
                   </div>
                   {prepStreamText && (
@@ -854,43 +846,43 @@ export default function ApplicationDetailPage() {
                 <div className="space-y-4">
                   {/* Actions */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <button onClick={handleCopyPrep} className="btn-secondary flex items-center gap-2 text-sm">
+                    <Button onClick={handleCopyPrep} className="flex items-center gap-2 text-sm">
                       <Copy className="w-4 h-4" /> Copy as Markdown
-                    </button>
-                    <button onClick={() => window.print()} className="btn-secondary flex items-center gap-2 text-sm">
+                    </Button>
+                    <Button onClick={() => window.print()} className="flex items-center gap-2 text-sm">
                       <Printer className="w-4 h-4" /> Print
-                    </button>
+                    </Button>
                     {showRegenerateWarning ? (
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-amber-600 dark:text-amber-400">This will replace your current prep.</span>
-                        <button onClick={handleGeneratePrep} className="btn-danger text-sm flex items-center gap-2">
+                        <Button variant="danger" onClick={handleGeneratePrep} className="text-sm flex items-center gap-2">
                           <RefreshCw className="w-4 h-4" /> Confirm Regenerate
-                        </button>
-                        <button onClick={() => setShowRegenerateWarning(false)} className="btn-secondary text-sm">Cancel</button>
+                        </Button>
+                        <Button onClick={() => setShowRegenerateWarning(false)} className="text-sm">Cancel</Button>
                       </div>
                     ) : (
-                      <button onClick={() => setShowRegenerateWarning(true)} className="btn-secondary flex items-center gap-2 text-sm">
+                      <Button onClick={() => setShowRegenerateWarning(true)} className="flex items-center gap-2 text-sm">
                         <RefreshCw className="w-4 h-4" /> Regenerate
-                      </button>
+                      </Button>
                     )}
                   </div>
 
                   {/* Questions they'll ask you */}
                   <div>
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                      <BookOpen className="w-4 h-4 text-primary-500" />
+                      <BookOpen className="w-4 h-4 text-accent" />
                       Questions you'll likely be asked
                     </h3>
                     <div className="space-y-3">
                       {prep.questions.map((q, i) => (
                         <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
                           <p className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                            <span className="text-primary-500 mr-2">Q{i + 1}.</span>{q.question}
+                            <span className="text-accent mr-2">Q{i + 1}.</span>{q.question}
                           </p>
                           <ul className="space-y-1">
                             {q.talking_points.map((tp, j) => (
                               <li key={j} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                <span className="text-primary-400 mt-0.5 flex-shrink-0">•</span>
+                                <span className="text-accent mt-0.5 flex-shrink-0">•</span>
                                 {tp}
                               </li>
                             ))}
@@ -904,14 +896,14 @@ export default function ApplicationDetailPage() {
                   {prep.questions_to_ask?.length > 0 && (
                     <div>
                       <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                        <MessageCircle className="w-4 h-4 text-primary-500" />
+                        <MessageCircle className="w-4 h-4 text-accent" />
                         Questions to ask the interviewer
                       </h3>
                       <div className="space-y-3">
                         {prep.questions_to_ask.map((q, i) => (
                           <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
                             <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                              <span className="text-primary-500 mr-2">{i + 1}.</span>{q.question}
+                              <span className="text-accent mr-2">{i + 1}.</span>{q.question}
                             </p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 italic">{q.purpose}</p>
                           </div>
@@ -922,15 +914,14 @@ export default function ApplicationDetailPage() {
 
                   {/* Notes */}
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
-                    <label className="label">My Notes</label>
-                    <textarea
+                    <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">My Notes</label>
+                    <Textarea
                       value={prepNotes}
                       onChange={e => setPrepNotes(e.target.value)}
                       onBlur={handleSavePrepNotes}
                       placeholder="Add notes for your interview session..."
                       rows={4}
-                      className="input resize-y"
-                    />
+                      className="resize-y" />
                     {prepNotesSaving && (
                       <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
                         <Loader2 className="w-3 h-3 animate-spin" /> Saving...
@@ -951,9 +942,9 @@ export default function ApplicationDetailPage() {
                       {prepError}
                     </div>
                   )}
-                  <button onClick={handleGeneratePrep} className="btn-primary flex items-center gap-2 mx-auto">
+                  <Button variant="primary" onClick={handleGeneratePrep} className="flex items-center gap-2 mx-auto">
                     <Play className="w-4 h-4" /> Generate Interview Questions
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -982,32 +973,30 @@ export default function ApplicationDetailPage() {
         </div>
 
         {noteFormOpen && (
-          <div className="mb-4 p-3 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 space-y-2">
-            <input
+          <div className="mb-4 p-3 rounded-lg border border-accent dark:border-accent bg-accent/10 dark:bg-accent/20 space-y-2">
+            <Input
               type="text"
               value={noteForm.headline}
               onChange={e => setNoteForm(f => ({ ...f, headline: e.target.value }))}
               placeholder="Headline"
-              className="input w-full text-sm font-medium"
-              autoFocus={noteFormOpen}
-            />
-            <textarea
+              className="w-full text-sm font-medium"
+              autoFocus={noteFormOpen} />
+            <Textarea
               value={noteForm.body}
               onChange={e => setNoteForm(f => ({ ...f, body: e.target.value }))}
               placeholder="Note text (optional)"
               rows={3}
-              className="input w-full text-sm resize-y"
-            />
+              className="w-full text-sm resize-y" />
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setNoteFormOpen(false)} className="btn-secondary text-xs py-1">Cancel</button>
-              <button
+              <Button onClick={() => setNoteFormOpen(false)} className="text-xs py-1">Cancel</Button>
+              <Button variant="primary"
                 onClick={handleCreateNote}
                 disabled={noteSaving || !noteForm.headline.trim()}
-                className="btn-primary text-xs py-1 flex items-center gap-1"
+                className="text-xs py-1 flex items-center gap-1"
               >
                 {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                 Save
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -1020,29 +1009,27 @@ export default function ApplicationDetailPage() {
             <div key={note.id} className="rounded-lg bg-gray-50 dark:bg-gray-900/30 p-3">
               {editingNote?.id === note.id ? (
                 <div className="space-y-2">
-                  <input
+                  <Input
                     type="text"
                     value={editForm.headline}
                     onChange={e => setEditForm(f => ({ ...f, headline: e.target.value }))}
-                    className="input w-full text-sm font-medium"
-                    autoFocus
-                  />
-                  <textarea
+                    className="w-full text-sm font-medium"
+                    autoFocus />
+                  <Textarea
                     value={editForm.body}
                     onChange={e => setEditForm(f => ({ ...f, body: e.target.value }))}
                     rows={3}
-                    className="input w-full text-sm resize-y"
-                  />
+                    className="w-full text-sm resize-y" />
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => setEditingNote(null)} className="btn-secondary text-xs py-1">Cancel</button>
-                    <button
+                    <Button onClick={() => setEditingNote(null)} className="text-xs py-1">Cancel</Button>
+                    <Button variant="primary"
                       onClick={handleUpdateNote}
                       disabled={noteSaving || !editForm.headline.trim()}
-                      className="btn-primary text-xs py-1 flex items-center gap-1"
+                      className="text-xs py-1 flex items-center gap-1"
                     >
                       {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                       Save
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -1099,41 +1086,38 @@ export default function ApplicationDetailPage() {
               </div>
               <p className="text-sm text-amber-700 dark:text-amber-400">Do you also want to delete the output folder and all generated files inside it?</p>
               <div className="flex flex-col gap-2 pt-1">
-                <button
+                <Button variant="primary"
                   onClick={() => confirmDelete(true)}
                   disabled={deleting}
-                  className="btn-primary flex items-center justify-center gap-2 w-full"
-                >
+                  className="flex items-center justify-center gap-2 w-full">
                   {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   Delete application and folder
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => confirmDelete(false)}
                   disabled={deleting}
-                  className="btn-secondary flex items-center justify-center gap-2 w-full"
-                >
+                  className="flex items-center justify-center gap-2 w-full">
                   Delete application only
-                </button>
+                </Button>
               </div>
             </div>
           )}
 
           {!app?.output_path && (
             <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => setShowDeleteModal(false)} className="btn-secondary">Cancel</button>
-              <button
+              <Button onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+              <Button variant="primary"
                 onClick={() => confirmDelete(false)}
                 disabled={deleting}
-                className="btn-primary flex items-center gap-2"
-              >
+                className="flex items-center gap-2">
                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 Delete
-              </button>
+              </Button>
             </div>
           )}
 
           {app?.output_path && (
-            <button onClick={() => setShowDeleteModal(false)} className="btn-secondary w-full">Cancel</button>
+            <Button onClick={() => setShowDeleteModal(false)} className="w-full">Cancel</Button>
           )}
         </div>
       </Modal>

@@ -1,86 +1,92 @@
+import { Coffee, HardDrive, Heart, Lock, ShieldCheck } from 'lucide-react';
+import { Button, Surface } from '@/components/ui';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function DonatePage() {
   const { theme } = useTheme();
 
-  const sectionStyle = {
-    background: theme.surface,
-    border: `1px solid ${theme.border}`,
-    borderRadius: '16px',
-    padding: '24px',
-    marginBottom: '20px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  };
+  const badges = [
+    { icon: ShieldCheck, label: '100% free forever', color: '#16a34a' },
+    { icon: Lock, label: 'No ads or tracking', color: '#f59e0b' },
+    { icon: HardDrive, label: 'Your data, your device', color: theme.accent },
+  ];
+
+  const options = [
+    {
+      icon: Coffee,
+      title: 'Buy Me a Coffee',
+      sub: 'One-time donation, any amount',
+      url: 'https://buymeacoffee.com/larsmikki',
+      label: 'Buy Me a Coffee',
+    },
+    {
+      icon: Heart,
+      title: 'PayPal',
+      sub: 'Quick donation through PayPal',
+      url: 'https://paypal.me/larsmikki',
+      label: 'Donate via PayPal',
+    },
+  ];
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>Support Applyr</h1>
-        <p className="text-sm mt-0.5" style={{ color: theme.text2 }}>
-          I build privacy-first, self-hosted tools — no subscriptions, no ads, no tracking.
-          Your data stays yours. If this saves you time, consider supporting the work.
+        <h1 className="text-2xl font-extrabold tracking-tight text-text">Support Applyr</h1>
+        <p className="text-sm mt-0.5 text-text2">
+          I build privacy-first, self-hosted tools with no subscriptions, no ads, and no tracking.
+          Your data stays yours.
         </p>
       </div>
 
-      <div style={sectionStyle}>
-        <h2 className="text-base font-bold mb-1" style={{ color: theme.text }}>What you get</h2>
-        <p className="text-xs mb-5" style={{ color: theme.text2 }}>Applyr is and always will be free, open source, and self-hosted.</p>
+      <Surface className="p-6 mb-5">
+        <h2 className="text-base font-bold mb-1 text-text">What you get</h2>
+        <p className="text-xs mb-5 text-text2">Applyr stays free, open source, and self-hosted.</p>
         <div className="flex flex-wrap gap-2">
-          {[
-            { icon: '🛡️', label: '100% Free Forever', color: '#22c55e' },
-            { icon: '🔒', label: 'No Ads or Tracking', color: '#f59e0b' },
-            { icon: '💾', label: 'Your data, your device', color: '#8b5cf6' },
-          ].map(({ icon, label, color }) => (
+          {badges.map(({ icon: Icon, label, color }) => (
             <div
               key={label}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{ background: `${color}15`, color, border: `1px solid ${color}20` }}
             >
-              <span>{icon}</span>
+              <Icon className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{label}</span>
             </div>
           ))}
         </div>
-      </div>
+      </Surface>
 
-      <div style={sectionStyle}>
-        <h2 className="text-base font-bold mb-1" style={{ color: theme.text }}>Donate</h2>
-        <p className="text-xs mb-5" style={{ color: theme.text2 }}>One-time donations via Buy Me a Coffee or PayPal. Any amount is appreciated.</p>
+      <Surface className="p-6 mb-5">
+        <h2 className="text-base font-bold mb-1 text-text">Donate</h2>
+        <p className="text-xs mb-5 text-text2">One-time donations through Buy Me a Coffee or PayPal.</p>
         <div className="grid sm:grid-cols-2 gap-4">
-          {[
-            { emoji: '☕', title: 'Buy Me a Coffee', sub: 'One-time donation, any amount', url: 'https://buymeacoffee.com/larsmikki', label: '☕ Buy Me a Coffee' },
-            { emoji: '💙', title: 'PayPal', sub: 'Quick & secure donation', url: 'https://paypal.me/larsmikki', label: '💙 Donate via PayPal' },
-          ].map(({ emoji, title, sub, url, label }) => (
+          {options.map(({ icon: Icon, title, sub, url, label }) => (
             <div
               key={title}
               className="flex flex-col items-center text-center gap-4 rounded-xl p-6"
               style={{ background: theme.surface2, border: `1px solid ${theme.border}` }}
             >
-              <div className="text-4xl">{emoji}</div>
+              <Icon className="h-9 w-9" style={{ color: theme.accent }} aria-hidden="true" />
               <div>
-                <h3 className="text-sm font-bold mb-1" style={{ color: theme.text }}>{title}</h3>
-                <p className="text-xs" style={{ color: theme.text2 }}>{sub}</p>
+                <h3 className="text-base font-bold leading-snug mb-1 text-text">{title}</h3>
+                <p className="text-xs text-text2">{sub}</p>
               </div>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full block py-2.5 text-sm font-semibold rounded-xl text-white transition-all hover:opacity-90 text-center"
-                style={{ background: theme.gradient, boxShadow: `0 4px 14px ${theme.accent}30` }}
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
               >
                 {label}
-              </a>
+              </Button>
             </div>
           ))}
         </div>
-      </div>
+      </Surface>
 
-      <div style={{ ...sectionStyle, marginBottom: 0 }}>
-        <h2 className="text-base font-bold mb-1" style={{ color: theme.text }}>Thank You!</h2>
-        <p className="text-xs" style={{ color: theme.text2 }}>
-          Every bit of support keeps Applyr free for everyone. Happy job hunting! 🎯
-        </p>
-      </div>
+      <Surface className="p-6">
+        <h2 className="text-base font-bold mb-1 text-text">Thank you</h2>
+        <p className="text-xs text-text2">Every bit of support helps keep Applyr available for everyone.</p>
+      </Surface>
     </div>
   );
 }

@@ -14,7 +14,7 @@ export default function FitScoreRing({ score, size = 44, grey = false }: Props) 
   const color = grey ? '#9ca3af' :
     score >= 70 ? '#22c55e' :
     score >= 40 ? '#eab308' :
-    '#ef4444';
+    '#dc2626';
 
   return (
     <div

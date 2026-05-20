@@ -18,13 +18,11 @@ import { getSettings, updateSettings, getApiKeyStatus,
 import type { Settings as SettingsType, VaultDocument, Snippet, PromptsResponse } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import ThemePicker from '@/components/ThemePicker';
-import { useToast } from '@/hooks/useToast';
+import { Button, ConfirmDialog, Input, Modal, Select, Textarea, useToast } from '@/components/ui';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import ToastStack from '@/components/Toast';
 import FileDropzone from '@/components/FileDropzone';
 import FileBrowser from '@/components/FileBrowser';
 import MarkdownPreview from '@/components/MarkdownPreview';
-import Modal from '@/components/Modal';
 
 type Tab = 'setup' | 'ai' | 'prompt' | 'output' | 'themes' | 'vault' | 'snippets' | 'data';
 
@@ -197,7 +195,7 @@ function StepList({ steps, done, details, onSelectTab }: {
               <button
                 type="button"
                 onClick={() => onSelectTab(step.tab)}
-                className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1 flex-shrink-0"
+                className="text-xs font-medium text-accent dark:text-accent hover:underline flex items-center gap-1 flex-shrink-0"
               >
                 {step.action} <ArrowRight className="w-3 h-3" />
               </button>
@@ -244,7 +242,7 @@ function SetupStatus({ aiDone, cvDone, templateDone, outputDone, aiDetail, cvDet
           </div>
           <div className="h-2 w-24 rounded-full overflow-hidden" style={{ background: theme.border }}>
             <div
-              className="h-full bg-primary-500 transition-all duration-300"
+              className="h-full bg-accent transition-all duration-300"
               style={{ width: `${(completedCount / total) * 100}%` }}
             />
           </div>
@@ -264,7 +262,7 @@ export default function SettingsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { toasts, addToast, removeToast } = useToast();
+  const { addToast } = useToast();
 
   // Determine initial tab from query param
   const queryTab = normalizeTab(new URLSearchParams(location.search).get('tab'));
@@ -307,6 +305,7 @@ export default function SettingsPage() {
   const [previewDoc, setPreviewDoc] = useState<VaultDocument | null>(null);
   const [previewText, setPreviewText] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [deleteDocTarget, setDeleteDocTarget] = useState<VaultDocument | null>(null);
 
   // ── Snippets state ────────────────────────────────────────────────────────
   const [snippets, setSnippets] = useState<Snippet[]>([]);
@@ -321,6 +320,7 @@ export default function SettingsPage() {
   const [newContent, setNewContent] = useState('');
   const [newDefault, setNewDefault] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [deleteSnippetTarget, setDeleteSnippetTarget] = useState<string | null>(null);
 
   // ── Prompts state ─────────────────────────────────────────────────────────
   const [prompts, setPrompts] = useState<PromptsResponse | null>(null);
@@ -463,7 +463,6 @@ export default function SettingsPage() {
   };
 
   const handleDeleteDoc = async (doc: VaultDocument) => {
-    if (!confirm(`Delete "${doc.filename}"?`)) return;
     try {
       await deleteDocument(doc.id);
       setDocuments(prev => prev.filter(d => d.id !== doc.id));
@@ -501,7 +500,6 @@ export default function SettingsPage() {
   };
 
   const handleDeleteSnippet = async (id: string) => {
-    if (!confirm('Delete this snippet?')) return;
     try {
       await deleteSnippet(id);
       setSnippets(prev => prev.filter(s => s.id !== id));
@@ -576,7 +574,7 @@ export default function SettingsPage() {
   if (settingsLoading) {
     return (
       <div className="flex justify-center py-16">
-        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -594,8 +592,6 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <ToastStack toasts={toasts} onRemove={removeToast} />
-
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>Settings</h1>
@@ -699,7 +695,7 @@ export default function SettingsPage() {
 
               {/* ── Provider toggle ───────────────────────────────────────── */}
               <div>
-                <label className="label">Provider</label>
+                <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Provider</label>
                 <div className="grid grid-cols-2 gap-3">
                   {/* OpenAI card */}
                   <button
@@ -707,14 +703,14 @@ export default function SettingsPage() {
                     onClick={() => switchProvider('openai')}
                     className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
                       activeProvider === 'openai'
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                        ? 'border-accent bg-accent/10 dark:bg-accent/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
-                      activeProvider === 'openai' ? 'border-primary-500' : 'border-gray-300 dark:border-gray-600'
+                      activeProvider === 'openai' ? 'border-accent' : 'border-gray-300 dark:border-gray-600'
                     }`}>
-                      {activeProvider === 'openai' && <div className="w-2 h-2 rounded-full bg-primary-500" />}
+                      {activeProvider === 'openai' && <div className="w-2 h-2 rounded-full bg-accent" />}
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">OpenAI / API</p>
@@ -728,14 +724,14 @@ export default function SettingsPage() {
                     onClick={() => switchProvider('ollama')}
                     className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
                       activeProvider === 'ollama'
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                        ? 'border-accent bg-accent/10 dark:bg-accent/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
                   >
                     <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
-                      activeProvider === 'ollama' ? 'border-primary-500' : 'border-gray-300 dark:border-gray-600'
+                      activeProvider === 'ollama' ? 'border-accent' : 'border-gray-300 dark:border-gray-600'
                     }`}>
-                      {activeProvider === 'ollama' && <div className="w-2 h-2 rounded-full bg-primary-500" />}
+                      {activeProvider === 'ollama' && <div className="w-2 h-2 rounded-full bg-accent" />}
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Ollama <span className="text-xs font-normal text-green-600 dark:text-green-400">local</span></p>
@@ -749,37 +745,35 @@ export default function SettingsPage() {
               {activeProvider === 'openai' && (
                 <>
                   <div>
-                    <label className="label">Model</label>
-                    <input type="text" placeholder="gpt-4o" value={settings.ai_model || ''} onChange={e => setSettings(prev => ({ ...prev, ai_model: e.target.value }))} className="input" />
+                    <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Model</label>
+                    <Input type="text" placeholder="gpt-4o" value={settings.ai_model || ''} onChange={e => setSettings(prev => ({ ...prev, ai_model: e.target.value }))} />
                     <p className="text-xs mt-1" style={{ color: theme.text2 }}>e.g. gpt-4o, gpt-4-turbo, claude-3-opus-20240229</p>
                   </div>
                   <div>
-                    <label className="label">Temperature <span className="font-normal" style={{ color: theme.text2 }}>(optional)</span></label>
-                    <input
+                    <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Temperature <span className="font-normal" style={{ color: theme.text2 }}>(optional)</span></label>
+                    <Input
                       type="number"
                       placeholder="Model default"
                       min="0" max="2" step="0.1"
                       value={settings.ai_temperature ?? ''}
-                      onChange={e => setSettings(prev => ({ ...prev, ai_temperature: e.target.value }))}
-                      className="input"
-                    />
+                      onChange={e => setSettings(prev => ({ ...prev, ai_temperature: e.target.value }))} />
                     <p className="text-xs mt-1" style={{ color: theme.text2 }}>Leave blank to use per-function defaults. Set to 1 for models like gpt-5.5 that only support the default value.</p>
                   </div>
                   <div>
-                    <label className="label">
+                    <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">
                       API Key
                       {apiKeyConfigured && <span className="ml-2 inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400"><CheckCircle className="w-3 h-3" /> Configured</span>}
                     </label>
                     <div className="relative">
-                      <input type={showApiKey ? 'text' : 'password'} placeholder={apiKeyConfigured ? '••••••••••••••••' : 'sk-...'} value={apiKey} onChange={e => setApiKey(e.target.value)} className="input pr-10" />
+                      <Input type={showApiKey ? 'text' : 'password'} placeholder={apiKeyConfigured ? '••••••••••••••••' : 'sk-...'} value={apiKey} onChange={e => setApiKey(e.target.value)} className="pr-10" />
                       <button type="button" onClick={() => setShowApiKey(!showApiKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                         {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label className="label">Base URL <span className="font-normal" style={{ color: theme.text2 }}>(optional)</span></label>
-                    <input type="url" placeholder="https://api.openai.com/v1" value={settings.ai_base_url || ''} onChange={e => setSettings(prev => ({ ...prev, ai_base_url: e.target.value }))} className="input" />
+                    <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Base URL <span className="font-normal" style={{ color: theme.text2 }}>(optional)</span></label>
+                    <Input type="url" placeholder="https://api.openai.com/v1" value={settings.ai_base_url || ''} onChange={e => setSettings(prev => ({ ...prev, ai_base_url: e.target.value }))} />
                     <p className="text-xs mt-1" style={{ color: theme.text2 }}>Leave blank for OpenAI. Set for Azure, proxies, or other compatible APIs.</p>
                   </div>
                 </>
@@ -794,7 +788,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <button
+                    <Button
                       onClick={async () => {
                         setOllamaDetecting(true);
                         setOllamaError(null);
@@ -820,11 +814,10 @@ export default function SettingsPage() {
                         }
                       }}
                       disabled={ollamaDetecting}
-                      className="btn-secondary flex items-center gap-2 text-sm"
-                    >
+                      className="flex items-center gap-2 text-sm">
                       {ollamaDetecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cpu className="w-4 h-4" />}
                       {ollamaDetected ? 'Re-detect models' : 'Detect Ollama'}
-                    </button>
+                    </Button>
 
                     {ollamaError && (
                       <div className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
@@ -838,49 +831,43 @@ export default function SettingsPage() {
                     {ollamaDetected && ollamaModels.length > 0 ? (
                       <div className="space-y-3">
                         <div>
-                          <label className="label">Ollama URL</label>
-                          <input
+                          <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Ollama URL</label>
+                          <Input
                             type="url"
                             placeholder="http://localhost:11434"
                             value={settings.ai_ollama_url || ''}
-                            onChange={e => setSettings(prev => ({ ...prev, ai_ollama_url: e.target.value }))}
-                            className="input"
-                          />
+                            onChange={e => setSettings(prev => ({ ...prev, ai_ollama_url: e.target.value }))} />
                         </div>
                         <div>
-                          <label className="label">Model</label>
-                          <select
-                            className="input"
+                          <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Model</label>
+                          <Select
+                            
                             value={settings.ai_model || ''}
                             onChange={e => setSettings(prev => ({ ...prev, ai_model: e.target.value }))}
                           >
                             {ollamaModels.map(m => (
                               <option key={m} value={m}>{m}</option>
                             ))}
-                          </select>
+                          </Select>
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         <div>
-                          <label className="label">Ollama URL</label>
-                          <input
+                          <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Ollama URL</label>
+                          <Input
                             type="url"
                             placeholder="http://localhost:11434"
                             value={settings.ai_ollama_url || ''}
-                            onChange={e => setSettings(prev => ({ ...prev, ai_ollama_url: e.target.value }))}
-                            className="input"
-                          />
+                            onChange={e => setSettings(prev => ({ ...prev, ai_ollama_url: e.target.value }))} />
                         </div>
                         <div>
-                          <label className="label">Model <span className="font-normal" style={{ color: theme.text2 }}>(or detect above)</span></label>
-                          <input
+                          <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Model <span className="font-normal" style={{ color: theme.text2 }}>(or detect above)</span></label>
+                          <Input
                             type="text"
                             placeholder="llama3.2"
                             value={settings.ai_model || ''}
-                            onChange={e => setSettings(prev => ({ ...prev, ai_model: e.target.value }))}
-                            className="input"
-                          />
+                            onChange={e => setSettings(prev => ({ ...prev, ai_model: e.target.value }))} />
                         </div>
                       </div>
                     )}
@@ -889,7 +876,7 @@ export default function SettingsPage() {
               )}
 
               <div className="flex gap-2">
-                <button onClick={async () => {
+                <Button variant="primary" onClick={async () => {
                   const updates: Partial<SettingsType> = {
                     ai_provider: settings.ai_provider || 'openai',
                     ai_model: settings.ai_model || '',
@@ -899,15 +886,15 @@ export default function SettingsPage() {
                   if (apiKey.trim()) updates.ai_api_key = apiKey;
                   await save(updates);
                   if (apiKey.trim()) { setApiKey(''); setApiKeyConfigured(true); }
-                }} disabled={saving} className="btn-primary flex items-center gap-2">
+                }} disabled={saving} className="flex items-center gap-2">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Save
-                </button>
-                <button onClick={testConnection} disabled={testingConnection} className="btn-secondary flex items-center gap-2" title="Checks that the Applyr server is reachable. This does not validate the AI provider.">
+                </Button>
+                <Button onClick={testConnection} disabled={testingConnection} className="flex items-center gap-2" title="Checks that the Applyr server is reachable. This does not validate the AI provider.">
                   {testingConnection ? <Loader2 className="w-4 h-4 animate-spin" /> : <TestTube className="w-4 h-4" />}
                   Test app server
                   {connectionResult === 'ok' && <CheckCircle className="w-4 h-4 text-green-500" />}
                   {connectionResult === 'fail' && <AlertCircle className="w-4 h-4 text-red-500" />}
-                </button>
+                </Button>
             </div>
           </div>
         </Section>
@@ -935,13 +922,12 @@ export default function SettingsPage() {
                       : 'No custom guidelines defined yet'}
                   </p>
                 </div>
-                <button
+                <Button
                   onClick={() => { setBpDraft(bestPractices); setBpModalPreview(false); setBpModalOpen(true); }}
-                  className="btn-secondary flex items-center gap-1.5 flex-shrink-0"
-                  style={{ fontSize: '12px', padding: '5px 10px' }}
-                >
+                  className="flex items-center gap-1.5 flex-shrink-0"
+                  style={{ fontSize: '12px', padding: '5px 10px' }}>
                   <Edit2 className="w-3 h-3" /> Edit
-                </button>
+                </Button>
               </div>
             )}
 
@@ -958,14 +944,13 @@ export default function SettingsPage() {
                       <p className="text-xs mt-0.5" style={{ color: theme.text2 }}>Cover letter guidelines · Markdown supported</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
                         onClick={() => setBpModalPreview(p => !p)}
-                        className="btn-secondary flex items-center gap-1.5"
-                        style={{ fontSize: '12px', padding: '5px 10px' }}
-                      >
+                        className="flex items-center gap-1.5"
+                        style={{ fontSize: '12px', padding: '5px 10px' }}>
                         {bpModalPreview ? <Edit2 className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         {bpModalPreview ? 'Edit' : 'Preview'}
-                      </button>
+                      </Button>
                       <button onClick={() => setBpModalOpen(false)} style={{ color: theme.text2 }}>
                         <X className="w-5 h-5" />
                       </button>
@@ -981,22 +966,21 @@ export default function SettingsPage() {
                         }
                       </div>
                     ) : (
-                      <textarea
+                      <Textarea
                         value={bpDraft}
                         onChange={e => setBpDraft(e.target.value)}
-                        className="input font-mono text-xs resize-none"
+                        className="font-mono text-xs resize-none"
                         style={{ width: '100%', height: '380px' }}
                         placeholder="Add guidelines that the AI should follow when writing cover letters..."
-                        autoFocus
-                      />
+                        autoFocus />
                     )}
                   </div>
                   {/* Footer */}
                   <div className="flex items-center justify-end gap-2 px-5 py-4" style={{ borderTop: `1px solid ${theme.border}` }}>
-                    <button onClick={() => setBpModalOpen(false)} className="btn-secondary flex items-center gap-1.5 text-sm">
+                    <Button onClick={() => setBpModalOpen(false)} className="flex items-center gap-1.5 text-sm">
                       <X className="w-3.5 h-3.5" /> Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="primary"
                       onClick={async () => {
                         setBpSaving(true);
                         try {
@@ -1011,11 +995,10 @@ export default function SettingsPage() {
                         }
                       }}
                       disabled={bpSaving}
-                      className="btn-primary flex items-center gap-1.5 text-sm"
-                    >
+                      className="flex items-center gap-1.5 text-sm">
                       {bpSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                       Save
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1023,12 +1006,11 @@ export default function SettingsPage() {
           </Section>
 
           <Section title="Advanced: System prompts" subtitle="Low-level AI instructions. Locked by default and rarely needed for normal writing setup.">
-            <button
+            <Button
               onClick={() => setAdvancedWritingOpen(open => !open)}
-              className="btn-secondary flex items-center gap-2 text-sm"
-            >
+              className="flex items-center gap-2 text-sm">
               {advancedWritingOpen ? 'Hide system prompts' : 'Show system prompts'}
-            </button>
+            </Button>
 
             {advancedWritingOpen && (<>
             {promptsLoading ? (
@@ -1059,13 +1041,12 @@ export default function SettingsPage() {
                         </div>
                         <p className="text-xs truncate" style={{ color: theme.text2 }}>{teaser}</p>
                       </div>
-                      <button
+                      <Button
                         onClick={() => setPromptWarningKey(key)}
-                        className="btn-secondary flex items-center gap-1.5 flex-shrink-0"
-                        style={{ fontSize: '12px', padding: '5px 10px' }}
-                      >
+                        className="flex items-center gap-1.5 flex-shrink-0"
+                        style={{ fontSize: '12px', padding: '5px 10px' }}>
                         <Lock className="w-3 h-3" /> Edit
-                      </button>
+                      </Button>
                     </div>
                   );
                 })}
@@ -1090,7 +1071,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => setPromptWarningKey(null)} className="btn-secondary">Cancel</button>
+                    <Button onClick={() => setPromptWarningKey(null)}>Cancel</Button>
                     <button
                       onClick={() => {
                         const key = promptWarningKey;
@@ -1138,19 +1119,18 @@ export default function SettingsPage() {
                     </div>
                     {/* Body */}
                     <div className="flex-1 overflow-auto p-5">
-                      <textarea
+                      <Textarea
                         value={draftValue}
                         onChange={e => setPromptDraftValues(prev => ({ ...prev, [key]: e.target.value }))}
-                        className="input font-mono text-xs resize-none"
+                        className="font-mono text-xs resize-none"
                         style={{ width: '100%', height: '380px' }}
-                        autoFocus
-                      />
+                        autoFocus />
                     </div>
                     {/* Footer */}
                     <div className="flex items-center justify-between gap-2 px-5 py-4" style={{ borderTop: `1px solid ${theme.border}` }}>
                       <div>
                         {isCustom && (
-                          <button
+                          <Button
                             onClick={async () => {
                               setPromptSavingKey(key);
                               try {
@@ -1167,21 +1147,19 @@ export default function SettingsPage() {
                               }
                             }}
                             disabled={promptSavingKey === key}
-                            className="btn-secondary flex items-center gap-1.5 text-sm"
-                          >
+                            className="flex items-center gap-1.5 text-sm">
                             {promptSavingKey === key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
                             Reset to default
-                          </button>
+                          </Button>
                         )}
                       </div>
                       <div className="flex gap-2">
-                        <button
+                        <Button
                           onClick={() => { setPromptModalKey(null); setPromptDraftValues(prev => { const n = { ...prev }; delete n[key]; return n; }); }}
-                          className="btn-secondary flex items-center gap-1.5 text-sm"
-                        >
+                          className="flex items-center gap-1.5 text-sm">
                           <X className="w-3.5 h-3.5" /> Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="primary"
                           onClick={async () => {
                             setPromptSavingKey(key);
                             try {
@@ -1197,11 +1175,10 @@ export default function SettingsPage() {
                             }
                           }}
                           disabled={promptSavingKey === key}
-                          className="btn-primary flex items-center gap-1.5 text-sm"
-                        >
+                          className="flex items-center gap-1.5 text-sm">
                           {promptSavingKey === key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                           Save
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1228,13 +1205,12 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 placeholder="/app/output or C:\Users\You\Documents\Applyr"
                 value={settings.output_dir || ''}
                 onChange={e => setSettings(prev => ({ ...prev, output_dir: e.target.value }))}
-                className="input font-mono text-sm flex-1"
-            />
+                className="font-mono text-sm flex-1" />
               <button onClick={() => setShowBrowser(true)} className="btn" title="Browse folders">
                 <FolderOpen className="w-4 h-4" />
               </button>
@@ -1243,9 +1219,9 @@ export default function SettingsPage() {
                 Local development can use a normal folder path. Docker can only write to paths inside the container unless you mount a host folder.
               </p>
             </div>
-            <button onClick={() => save({ output_dir: settings.output_dir })} disabled={saving} className="btn-primary mt-3">
+            <Button variant="primary" onClick={() => save({ output_dir: settings.output_dir })} disabled={saving} className="mt-3">
               {saving ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null} Save
-          </button>
+          </Button>
           <FileBrowser
             isOpen={showBrowser}
             onClose={() => setShowBrowser(false)}
@@ -1304,15 +1280,15 @@ export default function SettingsPage() {
             {selectedFile && (
               <div className="mt-4 space-y-3">
                 <div>
-                  <label className="label">Document type</label>
-                  <select value={newDocType} onChange={e => setNewDocType(e.target.value as DocType)} className="input">
+                  <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Document type</label>
+                  <Select value={newDocType} onChange={e => setNewDocType(e.target.value as DocType)}>
                     {DOC_TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
-                  </select>
+                  </Select>
                 </div>
-                <button onClick={handleUpload} disabled={uploading} className="btn-primary flex items-center gap-2">
+                <Button variant="primary" onClick={handleUpload} disabled={uploading} className="flex items-center gap-2">
                   {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   Upload Document
-                </button>
+                </Button>
               </div>
             )}
           </Section>
@@ -1368,7 +1344,7 @@ export default function SettingsPage() {
                       </div>
                       <p className="text-sm" style={{ color: theme.text2 }}>{desc}</p>
                       {tags && (
-                        <div className="mt-2 space-y-1.5 pl-2 border-l-2 border-primary-500/30">
+                        <div className="mt-2 space-y-1.5 pl-2 border-l-2 border-accent/30">
                           {tags.map(({ tag, desc: tagDesc }) => (
                             <div key={tag} className="flex items-start gap-2">
                               <code className="text-xs font-mono px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: `${theme.accent}22`, color: theme.accent }}>{tag}</code>
@@ -1405,7 +1381,7 @@ export default function SettingsPage() {
             </div>
 
             {vaultLoading ? (
-              <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>
+              <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-accent border-t-transparent rounded-full animate-spin" /></div>
             ) : filteredDocs.length === 0 ? (
               <div className="text-center py-8">
                 <FolderOpen className="w-8 h-8 mx-auto mb-2" style={{ color: theme.text2, opacity: 0.4 }} />
@@ -1440,11 +1416,11 @@ export default function SettingsPage() {
                       </button>
                     )}
 
-                    <button onClick={() => handlePreviewText(doc)} title="View extracted text" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: theme.border }} className="flex-shrink-0 hover:text-primary-500 transition-colors">
+                    <button onClick={() => handlePreviewText(doc)} title="View extracted text" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: theme.border }} className="flex-shrink-0 hover:text-accent transition-colors">
                       <Eye className="w-3.5 h-3.5" />
                     </button>
 
-                    <button onClick={() => handleDeleteDoc(doc)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: theme.border }} className="flex-shrink-0 hover:text-red-500 transition-colors">
+                    <button onClick={() => setDeleteDocTarget(doc)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: theme.border }} className="flex-shrink-0 hover:text-red-500 transition-colors">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -1458,7 +1434,7 @@ export default function SettingsPage() {
       {/* ── Extracted text preview modal ────────────────────────────────── */}
       <Modal open={!!previewDoc} onClose={() => setPreviewDoc(null)} title={previewDoc ? `Extracted text — ${previewDoc.filename}` : ''}>
         {previewLoading ? (
-          <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-accent border-t-transparent rounded-full animate-spin" /></div>
         ) : (
           <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '13px', lineHeight: '1.6', color: 'inherit', fontFamily: 'inherit', margin: 0 }}>{previewText}</pre>
         )}
@@ -1469,35 +1445,35 @@ export default function SettingsPage() {
         <div>
           <Section title="Snippets" subtitle="Reusable achievements, strengths, or standard paragraphs to include in generated letters.">
             <div className="flex justify-end mb-2">
-              <button onClick={() => setShowSnippetForm(!showSnippetForm)} className="btn-primary flex items-center gap-2 text-sm">
+              <Button variant="primary" onClick={() => setShowSnippetForm(!showSnippetForm)} className="flex items-center gap-2 text-sm">
                 {showSnippetForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                 {showSnippetForm ? 'Cancel' : 'Add Snippet'}
-              </button>
+              </Button>
             </div>
 
             {showSnippetForm && (
               <div style={{ background: theme.surface2, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '16px', marginBottom: '16px' }} className="space-y-3">
                 <div>
-                  <label className="label">Title</label>
-                  <input type="text" placeholder="e.g. Leadership Experience" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="input" />
+                  <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Title</label>
+                  <Input type="text" placeholder="e.g. Leadership Experience" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
                 </div>
                 <div>
-                  <label className="label">Content</label>
-                  <textarea placeholder="Write the snippet content..." value={newContent} onChange={e => setNewContent(e.target.value)} rows={4} className="input resize-y" />
+                  <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Content</label>
+                  <Textarea placeholder="Write the snippet content..." value={newContent} onChange={e => setNewContent(e.target.value)} rows={4} className="resize-y" />
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={newDefault} onChange={e => setNewDefault(e.target.checked)} className="w-4 h-4 rounded" />
                   <span className="text-sm" style={{ color: theme.text }}>Include by default in new applications</span>
                 </label>
-                <button onClick={handleCreateSnippet} disabled={creating || !newTitle || !newContent} className="btn-primary flex items-center gap-2">
+                <Button variant="primary" onClick={handleCreateSnippet} disabled={creating || !newTitle || !newContent} className="flex items-center gap-2">
                   {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   Create Snippet
-                </button>
+                </Button>
               </div>
             )}
 
             {snippetsLoading ? (
-              <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>
+              <div className="flex justify-center py-8"><div className="w-6 h-6 border-4 border-accent border-t-transparent rounded-full animate-spin" /></div>
             ) : snippets.length === 0 ? (
               <div className="text-center py-8">
                 <BookText className="w-8 h-8 mx-auto mb-2" style={{ color: theme.text2, opacity: 0.4 }} />
@@ -1509,17 +1485,17 @@ export default function SettingsPage() {
                   <div key={snippet.id} style={{ background: theme.surface2, border: `1px solid ${theme.border}`, borderRadius: '12px', overflow: 'hidden' }}>
                     {editingId === snippet.id ? (
                       <div className="p-4 space-y-3">
-                        <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="input font-medium" />
-                        <textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={4} className="input resize-y text-sm" />
+                        <Input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="font-medium" />
+                        <Textarea value={editContent} onChange={e => setEditContent(e.target.value)} rows={4} className="resize-y text-sm" />
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input type="checkbox" checked={editDefault} onChange={e => setEditDefault(e.target.checked)} className="w-4 h-4 rounded" />
                           <span className="text-sm" style={{ color: theme.text }}>Include by default</span>
                         </label>
                         <div className="flex gap-2">
-                          <button onClick={handleSaveEdit} disabled={snippetSaving} className="btn-primary flex items-center gap-2 text-sm">
+                          <Button variant="primary" onClick={handleSaveEdit} disabled={snippetSaving} className="flex items-center gap-2 text-sm">
                             {snippetSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
-                          </button>
-                          <button onClick={() => setEditingId(null)} className="btn-secondary text-sm">Cancel</button>
+                          </Button>
+                          <Button onClick={() => setEditingId(null)} className="text-sm">Cancel</Button>
                         </div>
                       </div>
                     ) : (
@@ -1540,7 +1516,7 @@ export default function SettingsPage() {
                             <button onClick={() => handleEditSnippet(snippet)} style={{ padding: '6px', borderRadius: '6px', background: 'none', border: 'none', cursor: 'pointer', color: theme.text2 }}>
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDeleteSnippet(snippet.id)} style={{ padding: '6px', borderRadius: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
+                            <button onClick={() => setDeleteSnippetTarget(snippet.id)} style={{ padding: '6px', borderRadius: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}>
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -1588,9 +1564,9 @@ export default function SettingsPage() {
             {importFile && (
               <div className="mt-4 flex items-center gap-3">
                 <span className="text-sm" style={{ color: theme.text2 }}>{importFile.name}</span>
-                <button onClick={handleImport} disabled={importing} className="btn-primary text-sm">
+                <Button variant="primary" onClick={handleImport} disabled={importing} className="text-sm">
                   {importing ? 'Importing...' : 'Import'}
-                </button>
+                </Button>
                 <button onClick={() => setImportFile(null)} className="text-sm" style={{ color: theme.text2 }}>Cancel</button>
               </div>
             )}
@@ -1624,14 +1600,14 @@ export default function SettingsPage() {
               />
             </div>
             {fullImportFile && (
-              <div className="mt-4 p-3 rounded-lg" style={{ background: '#7f1d1d22', border: '1px solid #ef444440' }}>
+              <div className="mt-4 p-3 rounded-lg" style={{ background: '#7f1d1d22', border: '1px solid #dc262640' }}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium" style={{ color: '#fca5a5' }}>Warning: This will replace all data</p>
                     <p className="text-xs" style={{ color: theme.text2 }}>{fullImportFile.name}</p>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={handleFullImport} disabled={fullImporting} className="px-3 py-1.5 text-sm font-semibold rounded-lg text-white" style={{ background: '#ef4444', opacity: fullImporting ? 0.6 : 1 }}>
+                    <button onClick={handleFullImport} disabled={fullImporting} className="px-3 py-1.5 text-sm font-semibold rounded-lg text-white" style={{ background: '#dc2626', opacity: fullImporting ? 0.6 : 1 }}>
                       {fullImporting ? 'Restoring...' : 'Restore'}
                     </button>
                     <button onClick={() => setFullImportFile(null)} className="px-3 py-1.5 text-sm font-semibold rounded-lg" style={{ background: theme.surface2, color: theme.text, border: `1px solid ${theme.border}` }}>
@@ -1644,6 +1620,30 @@ export default function SettingsPage() {
           </Section>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteDocTarget}
+        title="Delete document"
+        message={deleteDocTarget ? `Delete "${deleteDocTarget.filename}" from your document vault?` : ''}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          if (deleteDocTarget) void handleDeleteDoc(deleteDocTarget);
+        }}
+        onClose={() => setDeleteDocTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={!!deleteSnippetTarget}
+        title="Delete snippet"
+        message="This writing snippet will be removed."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          if (deleteSnippetTarget) void handleDeleteSnippet(deleteSnippetTarget);
+        }}
+        onClose={() => setDeleteSnippetTarget(null)}
+      />
 
     </div>
   );

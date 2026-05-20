@@ -64,7 +64,7 @@ export default function Layout() {
           bypass the nav on every page load. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:rounded-lg focus:bg-primary-600 focus:text-white focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:rounded-lg focus:bg-accent focus:text-white focus:shadow-lg"
       >
         Skip to main content
       </a>
@@ -82,7 +82,7 @@ export default function Layout() {
             type="button"
             onClick={() => navigate('/')}
             aria-label="Applyr — go to dashboard"
-            className="flex items-center gap-2.5 rounded-lg p-1 -ml-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+            className="flex items-center gap-2.5 rounded-lg p-1 -ml-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 focus-visible:ring-offset-2"
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
             <img src="/favicon.svg" width={28} height={28} alt="" className="shrink-0" />
@@ -97,7 +97,7 @@ export default function Layout() {
                 to={to}
                 end={end}
                 aria-label={label}
-                className="flex items-center gap-1.5 px-3 py-3 rounded-lg text-sm font-medium transition-[color,background-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                className="flex items-center gap-1.5 px-3 py-3 rounded-lg text-sm font-medium transition-[color,background-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 focus-visible:ring-offset-1"
                 style={({ isActive }) => ({
                   background: isActive ? `${theme.accent}22` : 'transparent',
                   color: isActive ? theme.accent : theme.text2,

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Briefcase, Search, ChevronLeft, ChevronRight, Calendar, PlusCircle } from 'lucide-react';
 import { getApplications } from '@/api';
@@ -7,6 +7,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import type { Application, Pagination } from '@/types';
 import StatusBadge from '@/components/StatusBadge';
 import FitScoreRing from '@/components/FitScoreRing';
+import { Button, Input, Select } from '@/components/ui';
 
 function SectionLabel({ title, count }: { title: string; count?: number }) {
   const { theme } = useTheme();
@@ -50,6 +51,7 @@ function CompanyMark({ company }: { company: string }) {
 export default function HistoryPage() {
   useDocumentTitle('History');
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [applications, setApplications] = useState<Application[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -116,7 +118,7 @@ export default function HistoryPage() {
               onClick={() => setFilter(s)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 filter === s
-                  ? 'bg-primary-600 text-white'
+                  ? 'bg-accent text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -127,20 +129,19 @@ export default function HistoryPage() {
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
+            <Input
               type="text"
               placeholder="Search company or role..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="input pl-9"
-            />
+              className="pl-9" />
           </div>
-          <select value={sort} onChange={e => setSort(e.target.value)} className="input w-48">
+          <Select value={sort} onChange={e => setSort(e.target.value)} className="w-48">
             <option value="created_at_desc">Newest first</option>
             <option value="created_at_asc">Oldest first</option>
             <option value="company_asc">Company A-Z</option>
             <option value="updated_at_desc">Recently updated</option>
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -149,7 +150,7 @@ export default function HistoryPage() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : applications.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-16 text-center">
@@ -159,10 +160,10 @@ export default function HistoryPage() {
             {filter !== 'all' || search ? 'Try adjusting your filters' : 'Start by creating your first application'}
           </p>
           {!filter && !search && (
-            <Link to="/apply" className="btn-primary inline-flex items-center gap-2 mt-4">
+            <Button variant="primary" onClick={() => navigate('/apply')} className="inline-flex items-center gap-2 mt-4">
               <PlusCircle className="w-4 h-4" />
               New Cover Letter
-            </Link>
+            </Button>
           )}
         </div>
       ) : (
@@ -203,20 +204,19 @@ export default function HistoryPage() {
             Page {pagination.page} of {pagination.totalPages}
           </p>
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="btn-secondary flex items-center gap-1 text-sm"
-            >
+              className="flex items-center gap-1 text-sm">
               <ChevronLeft className="w-3 h-3" /> Prev
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-              disabled={page >= pagination.totalPages}
-              className="btn-secondary flex items-center gap-1 text-sm"
+              disabled={page>= pagination.totalPages}
+              className="flex items-center gap-1 text-sm"
             >
               Next <ChevronRight className="w-3 h-3" />
-            </button>
+            </Button>
           </div>
         </div>
       )}

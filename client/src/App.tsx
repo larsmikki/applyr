@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import SettingsProvider from '@/contexts/SettingsContext';
+import { ToastProvider } from '@/components/ui';
 
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Layout from '@/components/Layout';
@@ -18,6 +19,7 @@ export default function App() {
     <ErrorBoundary>
     <ThemeProvider>
       <SettingsProvider>
+        <ToastProvider>
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>
@@ -38,6 +40,7 @@ export default function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        </ToastProvider>
       </SettingsProvider>
     </ThemeProvider>
     </ErrorBoundary>

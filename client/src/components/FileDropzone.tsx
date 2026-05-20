@@ -34,8 +34,8 @@ export default function FileDropzone({ accept, onFile, label = 'Drop a file or c
 
   if (selectedFile) {
     return (
-      <div className="border-2 border-primary-300 dark:border-primary-600 rounded-xl p-4 bg-primary-50 dark:bg-primary-900/20 flex items-center gap-3">
-        <File className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+      <div className="border-2 border-accent dark:border-accent rounded-xl p-4 bg-accent/10 dark:bg-accent/20 flex items-center gap-3">
+        <File className="w-5 h-5 text-accent dark:text-accent flex-shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{selectedFile.name}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400">{(selectedFile.size / 1024).toFixed(1)} KB</p>
@@ -43,7 +43,7 @@ export default function FileDropzone({ accept, onFile, label = 'Drop a file or c
         {onClear && (
           <button
             onClick={onClear}
-            className="p-1 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors"
+            className="p-1 rounded-lg hover:bg-accent dark:hover:bg-accent transition-colors"
           >
             <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
           </button>
@@ -70,10 +70,10 @@ export default function FileDropzone({ accept, onFile, label = 'Drop a file or c
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+      className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 focus-visible:ring-offset-2 ${
         isDragging
-          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-          : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+          ? 'border-accent bg-accent/10 dark:bg-accent/20'
+          : 'border-gray-300 dark:border-gray-600 hover:border-accent dark:hover:border-accent hover:bg-gray-50 dark:hover:bg-gray-800/50'
       }`}
     >
       <input
@@ -84,7 +84,7 @@ export default function FileDropzone({ accept, onFile, label = 'Drop a file or c
         className="hidden"
         tabIndex={-1}
       />
-      <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary-500' : 'text-gray-400'}`} aria-hidden="true" />
+      <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-accent' : 'text-gray-400'}`} aria-hidden="true" />
       <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
         {accept ? `Accepted: ${accept}` : 'Any file type'}

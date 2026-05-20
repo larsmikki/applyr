@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 interface Props {
   children: ReactNode;
@@ -47,12 +48,12 @@ export default class ErrorBoundary extends Component<Props, State> {
                 {this.state.error.message || String(this.state.error)}
               </pre>
               <div className="flex gap-2 mt-4">
-                <button onClick={this.handleReset} className="btn-secondary text-sm">
+                <Button onClick={this.handleReset} className="text-sm">
                   Try again
-                </button>
-                <button onClick={this.handleReload} className="btn-primary text-sm flex items-center gap-1.5">
+                </Button>
+                <Button variant="primary" onClick={this.handleReload} className="text-sm flex items-center gap-1.5">
                   <RefreshCw className="w-3.5 h-3.5" /> Reload
-                </button>
+                </Button>
               </div>
             </div>
           </div>
