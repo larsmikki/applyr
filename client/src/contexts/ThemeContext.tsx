@@ -14,8 +14,6 @@ export interface ThemeDefinition {
   previewColors: string[];
 }
 
-const APPLYR_GRADIENT = 'linear-gradient(135deg, #e879f9 0%, #a21caf 100%)';
-
 export const THEMES: ThemeDefinition[] = [
   {
     name: 'Default',
@@ -26,9 +24,9 @@ export const THEMES: ThemeDefinition[] = [
     border: 'rgba(0,0,0,0.09)',
     text: '#09090b',
     text2: '#71717a',
-    accent: '#a855f7',
-    gradient: APPLYR_GRADIENT,
-    previewColors: ['#e8eaed', '#d1d5db', '#a855f7'],
+    accent: '#c026d3',
+    gradient: 'linear-gradient(135deg, #d946ef 0%, #a21caf 100%)',
+    previewColors: ['#e8eaed', '#d1d5db', '#c026d3'],
   },
   {
     name: 'Dark',
@@ -36,12 +34,12 @@ export const THEMES: ThemeDefinition[] = [
     bg: '#0a0a0f',
     surface: '#111118',
     surface2: '#1a1a28',
-    border: 'rgba(168,85,247,0.18)',
+    border: 'rgba(192,38,211,0.18)',
     text: '#f0f0ff',
     text2: '#a1a1aa',
-    accent: '#c084fc',
-    gradient: APPLYR_GRADIENT,
-    previewColors: ['#111118', '#1a1a28', '#c084fc'],
+    accent: '#c026d3',
+    gradient: 'linear-gradient(135deg, #d946ef 0%, #a21caf 100%)',
+    previewColors: ['#111118', '#1a1a28', '#c026d3'],
   },
   {
     name: 'Midnight',

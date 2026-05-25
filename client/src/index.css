@@ -5,7 +5,7 @@
 /* Applyr keeps the app brand static across themes. Individual themes still
    update --theme-accent for active states and swatches. */
 :root {
-  --brand-gradient: linear-gradient(135deg, #e879f9 0%, #a21caf 100%);
+  --brand-gradient: linear-gradient(135deg, #d946ef 0%, #a21caf 100%);
 }
 
 *, *::before, *::after {

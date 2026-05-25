@@ -26,14 +26,15 @@
 - **Multiple themes** — light and dark built-in themes
 - **OpenAI-compatible** — works with GPT-4o, Ollama, Azure OpenAI, and any compatible API
 
-## Requirements
+## Getting started
 
-- Docker and Docker Compose
-- An OpenAI-compatible API key (configured in Settings after launch)
+Pick whichever install path matches your setup. All paths land on [http://localhost:3090](http://localhost:3090); open **Settings → AI Config** to add an OpenAI-compatible API key once it's running.
 
-## Docker setup
+### 1. Docker (Docker Desktop, NAS, or any Docker server)
 
-### Quick start
+Works on Synology, Unraid, TrueNAS, QNAP, Proxmox, or a plain Docker host. Requires Docker (and ideally Docker Compose).
+
+**One-liner:**
 
 ```bash
 docker run -d \
@@ -45,9 +46,7 @@ docker run -d \
   larsmikki/applyr:latest
 ```
 
-Then open [http://localhost:3090](http://localhost:3090) and go to **Settings → AI Config** to enter your API key.
-
-### Docker Compose (recommended)
+**Docker Compose (recommended):**
 
 ```yaml
 services:
@@ -66,13 +65,82 @@ volumes:
   applyr-output:
 ```
 
-The `output` volume is where generated cover letters and documents are saved. You can bind-mount it to a folder on your host instead:
+The `output` volume is where generated cover letters and documents are saved. Bind-mount it to a host folder if you'd rather see the files directly:
 
 ```yaml
 volumes:
   - applyr-data:/app/data
-  - /home/user/Documents/Applyr:/app/output
+  - /volume1/docs/Applyr:/app/output   # NAS example
 ```
+
+On Docker Desktop, the app will be reachable at [http://localhost:3090](http://localhost:3090). On a NAS, swap `localhost` for the NAS IP.
+
+### 2. Local install on Windows
+
+Requires [Git for Windows](https://git-scm.com/download/win) and [Node.js 20+](https://nodejs.org/) (LTS). PowerShell or Windows Terminal works.
+
+```powershell
+git clone https://github.com/larsmikki/applyr.git
+cd applyr
+npm run setup
+npm run dev
+```
+
+Open [http://localhost:3090](http://localhost:3090). Data is written to `%USERPROFILE%\.applyr\data\` in production builds and to `.\data\` in dev.
+
+For a production build:
+
+```powershell
+npm run build
+npm start
+```
+
+### 3. Local install on macOS
+
+Requires [Homebrew](https://brew.sh/) (optional but easiest) and Node.js 20+.
+
+```bash
+brew install node git           # skip if already installed
+git clone https://github.com/larsmikki/applyr.git
+cd applyr
+npm run setup
+npm run dev
+```
+
+Open [http://localhost:3090](http://localhost:3090). For a production build:
+
+```bash
+npm run build
+npm start
+```
+
+Data lives at `~/.applyr/data/` in production and `./data/` in dev.
+
+### 4. Local install on Linux
+
+Requires Node.js 20+ and Git. On Debian/Ubuntu:
+
+```bash
+# Node 20 via NodeSource
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs git
+
+git clone https://github.com/larsmikki/applyr.git
+cd applyr
+npm run setup
+npm run dev
+```
+
+On Fedora/RHEL use `dnf install nodejs git`; on Arch use `pacman -S nodejs npm git`.
+
+Open [http://localhost:3090](http://localhost:3090). For a production build:
+
+```bash
+npm run build
+npm start
+```
+
+To run as a background service, drop a unit file in `/etc/systemd/system/applyr.service` pointing `ExecStart` at `npm start` from the repo root.
 
 ## Configuration
 

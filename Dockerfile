@@ -37,7 +37,7 @@ ENV OUTPUT_DIR=/app/output
 
 EXPOSE 3090
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=5m --timeout=5s --start-period=10s --retries=3 \
   CMD wget --spider -q http://localhost:3090/api/health || exit 1
 
 CMD ["sh", "-c", "cd /app/server && node dist/index.js"]
