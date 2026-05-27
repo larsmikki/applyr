@@ -1,22 +1,14 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getSettings, updateSettings } from '@/api';
+import { createContext, useContext } from 'react';
 import type { Settings } from '@/types';
 
-interface SettingsContextValue {
+export interface SettingsContextValue {
   settings: Settings | null;
   loading: boolean;
   updateSettings: (data: Partial<Settings>) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
-const SettingsContext = createContext<SettingsContextValue>({
-  settings: null,
-  loading: true,
-  updateSettings: async () => {},
-  refresh: async () => {},
-});
-
-const defaultSettings: Settings = {
+export const defaultSettings: Settings = {
   ai_provider: 'openai',
   ai_model: 'gpt-4o',
   ai_api_key: '',
@@ -30,33 +22,13 @@ const defaultSettings: Settings = {
   output_language: 'en',
 };
 
-export default function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<Settings | null>(null);
-  const [loading, setLoading] = useState(true);
+export const settingsQueryKey = ['settings'] as const;
 
-  const fetchSettings = async () => {
-    try {
-      const data = await getSettings();
-      setSettings({ ...defaultSettings, ...data });
-    } catch {
-      setSettings(defaultSettings);
-    } finally {
-      setLoading(false);
-    }
-  };
+export const SettingsContext = createContext<SettingsContextValue>({
+  settings: null,
+  loading: true,
+  updateSettings: async () => {},
+  refresh: async () => {},
+});
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const handleUpdateSettings = async (data: Partial<Settings>) => {
-    const updated = await updateSettings(data);
-    setSettings(prev => ({ ...defaultSettings, ...prev, ...updated }));
-  };
-
-  return (
-    <SettingsContext.Provider value={{ settings, loading, updateSettings: handleUpdateSettings, refresh: fetchSettings }}>
-      {children}
-    </SettingsContext.Provider>
-  );
-}
+export const useSettings = () => useContext(SettingsContext);

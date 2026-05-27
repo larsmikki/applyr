@@ -3,15 +3,15 @@ import {
   Cpu, Palette, FolderOpen,
   Eye, EyeOff, Loader2, CheckCircle, AlertCircle, TestTube,
   BookText, Plus, Trash2, Edit2, X, Save, Upload,
-  Download, FileJson, Table, Star, FileText, Info,
-  ArrowRight, Sparkles, User, Layers, BarChart2, Terminal,
+  Download, Star, FileText, Info,
+  ArrowRight, User, Layers, BarChart2, Terminal,
   Lock, Unlock, AlertTriangle, RotateCcw
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getSettings, updateSettings, getApiKeyStatus,
          getVaultDocuments, uploadDocument, updateDocument, deleteDocument, getVaultDocumentText,
          getSnippets, createSnippet, updateSnippet, deleteSnippet,
-         exportCSV, exportConfig, importConfig,
+         exportConfig, importConfig,
          exportFullBackup, importFullBackup,
          getBestPractices, updateBestPractices, getLocalModels, getPrompts,
          updatePrompt, resetPrompt } from '@/api';
@@ -57,11 +57,6 @@ const TYPE_COLORS: Record<DocType, string> = {
   cover_letter_template: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   attachment: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
 };
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 const PROMPT_META: Record<string, { title: string; icon: React.ElementType }> = {
   fitAnalysis:    { title: 'Fit Analysis',            icon: BarChart2  },
@@ -91,42 +86,6 @@ function Section({ title, subtitle, children }: {
       <h2 className="text-base font-bold mb-1" style={{ color: theme.text }}>{title}</h2>
       <p className="text-xs mb-5" style={{ color: theme.text2 }}>{subtitle}</p>
       {children}
-    </div>
-  );
-}
-
-// ── Segmented button ──────────────────────────────────────────────────────────
-
-function SegmentedButton<T extends string>({ value, options, onChange }: {
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (v: T) => void;
-}) {
-  const { theme } = useTheme();
-  return (
-    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-      {options.map(opt => (
-        <button
-          key={opt.value}
-          onClick={() => onChange(opt.value)}
-          style={{
-            flex: 1,
-            minWidth: '80px',
-            padding: '8px 12px',
-            borderRadius: '10px',
-            fontSize: '13px',
-            fontWeight: 500,
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-            background: value === opt.value ? `${theme.accent}15` : theme.surface2,
-            border: `1px solid ${value === opt.value ? theme.accent : theme.border}`,
-            color: value === opt.value ? theme.accent : theme.text2,
-            boxShadow: value === opt.value ? `0 0 0 3px ${theme.accent}15` : 'none',
-          }}
-        >
-          {opt.label}
-        </button>
-      ))}
     </div>
   );
 }
@@ -265,15 +224,9 @@ export default function SettingsPage() {
   const { addToast } = useToast();
 
   // Determine initial tab from query param
-  const queryTab = normalizeTab(new URLSearchParams(location.search).get('tab'));
-  const [tab, setTab] = useState<Tab>(queryTab);
-
-  useEffect(() => {
-    setTab(normalizeTab(new URLSearchParams(location.search).get('tab')));
-  }, [location.search]);
+  const tab = normalizeTab(new URLSearchParams(location.search).get('tab'));
 
   const selectTab = (nextTab: Tab) => {
-    setTab(nextTab);
     navigate(nextTab === 'setup' ? '/settings' : `/settings?tab=${nextTab}`, { replace: true });
   };
 
@@ -340,7 +293,6 @@ export default function SettingsPage() {
   const [bpModalPreview, setBpModalPreview] = useState(false);
 
   // ── Data state ────────────────────────────────────────────────────────────
-  const [csvLoading, setCsvLoading] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
   const [fullBackupLoading, setFullBackupLoading] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -361,35 +313,43 @@ export default function SettingsPage() {
 
   // ── Load vault when tab opens ─────────────────────────────────────────────
   useEffect(() => {
-    if ((tab === 'setup' || tab === 'vault') && documents.length === 0 && !vaultLoading) {
-      setVaultLoading(true);
-      getVaultDocuments().then(setDocuments).catch(() => addToast('Failed to load vault', 'error')).finally(() => setVaultLoading(false));
-    }
-  }, [tab]);
+    queueMicrotask(() => {
+      if ((tab === 'setup' || tab === 'vault') && documents.length === 0 && !vaultLoading) {
+        setVaultLoading(true);
+        getVaultDocuments().then(setDocuments).catch(() => addToast('Failed to load vault', 'error')).finally(() => setVaultLoading(false));
+      }
+    });
+  }, [addToast, documents.length, tab, vaultLoading]);
 
   // ── Load snippets when tab opens ──────────────────────────────────────────
   useEffect(() => {
-    if (tab === 'prompt' && snippets.length === 0 && !snippetsLoading) {
-      setSnippetsLoading(true);
-      getSnippets().then(setSnippets).catch(() => addToast('Failed to load snippets', 'error')).finally(() => setSnippetsLoading(false));
-    }
-  }, [tab]);
+    queueMicrotask(() => {
+      if (tab === 'prompt' && snippets.length === 0 && !snippetsLoading) {
+        setSnippetsLoading(true);
+        getSnippets().then(setSnippets).catch(() => addToast('Failed to load snippets', 'error')).finally(() => setSnippetsLoading(false));
+      }
+    });
+  }, [addToast, snippets.length, snippetsLoading, tab]);
 
   // ── Load best practices when tab opens ───────────────────────────────────
   useEffect(() => {
-    if (tab === 'prompt' && !bpLoading && !bestPractices) {
-      setBpLoading(true);
-      getBestPractices().then(r => setBestPractices(r.content)).catch(() => addToast('Failed to load writing prompt', 'error')).finally(() => setBpLoading(false));
-    }
-  }, [tab]);
+    queueMicrotask(() => {
+      if (tab === 'prompt' && !bpLoading && !bestPractices) {
+        setBpLoading(true);
+        getBestPractices().then(r => setBestPractices(r.content)).catch(() => addToast('Failed to load writing prompt', 'error')).finally(() => setBpLoading(false));
+      }
+    });
+  }, [addToast, bestPractices, bpLoading, tab]);
 
   // ── Load prompts when tab opens ───────────────────────────────────────────
   useEffect(() => {
-    if (tab === 'prompt' && !promptsLoading && !prompts) {
-      setPromptsLoading(true);
-      getPrompts().then(setPrompts).catch(() => addToast('Failed to load prompts', 'error')).finally(() => setPromptsLoading(false));
-    }
-  }, [tab]);
+    queueMicrotask(() => {
+      if (tab === 'prompt' && !promptsLoading && !prompts) {
+        setPromptsLoading(true);
+        getPrompts().then(setPrompts).catch(() => addToast('Failed to load prompts', 'error')).finally(() => setPromptsLoading(false));
+      }
+    });
+  }, [addToast, prompts, promptsLoading, tab]);
 
   // ── Settings handlers ─────────────────────────────────────────────────────
   const save = async (updates: Partial<SettingsType>) => {
@@ -508,17 +468,6 @@ export default function SettingsPage() {
   };
 
   // ── Data handlers ─────────────────────────────────────────────────────────
-  const handleExportCsv = async () => {
-    setCsvLoading(true);
-    try {
-      const url = await exportCSV();
-      const a = document.createElement('a');
-      a.href = url; a.download = `applyr_export_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
-      URL.revokeObjectURL(url);
-      addToast('CSV exported', 'success');
-    } catch (err) { addToast(err instanceof Error ? err.message : 'Export failed', 'error'); }
-    finally { setCsvLoading(false); }
-  };
 
   const handleExportConfig = async () => {
     setConfigLoading(true);

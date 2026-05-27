@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '@/contexts/ThemeContext';
 import { PlusCircle, ArrowRight, AlertCircle, Play } from 'lucide-react';
 import { getApplications, getAnalyticsSummary, getAnalyticsTrends, getAnalyticsCompanies } from '@/api';
@@ -135,36 +136,36 @@ function weekLabel(): string {
 export default function FrontPage() {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [recentApps, setRecentApps] = useState<Application[]>([]);
-  const [inProgressApps, setInProgressApps] = useState<Application[]>([]);
-  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
-  const [companies, setCompanies] = useState<{ company: string; count: number; latestStatus: string }[]>([]);
-  const [avgPerWeek, setAvgPerWeek] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // Snapshot "now" at mount so the staleness filter stays pure during render.
+  const [nowMs] = useState(() => Date.now());
 
-  const loadData = useCallback(() => {
-    setLoading(true);
-    setError(false);
-    Promise.all([
+  const { data, isLoading: loading, error, refetch } = useQuery({
+    queryKey: ['applyr-dashboard'],
+    queryFn: async () => {
+      const [appsData, interviewData, offerData, summaryData, trendsData, companiesData] = await Promise.all([
       getApplications({ limit: '5', sort: 'created_at_desc' }),
       getApplications({ status: 'interview', sort: 'created_at_desc' }),
       getApplications({ status: 'offer', sort: 'created_at_desc' }),
       getAnalyticsSummary(),
       getAnalyticsTrends(),
       getAnalyticsCompanies(),
-    ]).then(([appsData, interviewData, offerData, summaryData, trendsData, companiesData]) => {
-      setRecentApps(appsData.data);
+      ]);
       const merged = [...interviewData.data, ...offerData.data].sort((a, b) => b.created_at - a.created_at);
-      setInProgressApps(merged);
-      setSummary(summaryData);
-      setCompanies(companiesData.slice(0, 5));
       const last7 = trendsData.daily.slice(-7);
-      setAvgPerWeek(last7.reduce((sum, d) => sum + d.count, 0));
-    }).catch(() => setError(true)).finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
+      return {
+        recentApps: appsData.data,
+        inProgressApps: merged,
+        summary: summaryData,
+        companies: companiesData.slice(0, 5),
+        avgPerWeek: last7.reduce((sum, d) => sum + d.count, 0),
+      };
+    },
+  });
+  const recentApps = data?.recentApps ?? [];
+  const inProgressApps = data?.inProgressApps ?? [];
+  const summary: AnalyticsSummary | null = data?.summary ?? null;
+  const companies = data?.companies ?? [];
+  const avgPerWeek = data?.avgPerWeek ?? 0;
 
   if (loading) {
     return (
@@ -179,7 +180,7 @@ export default function FrontPage() {
       <div className="p-8 flex flex-col items-center justify-center gap-4">
         <AlertCircle className="w-10 h-10 text-red-400" />
         <p className="text-gray-600 dark:text-gray-400 font-medium">Failed to load dashboard data</p>
-        <Button onClick={loadData} className="flex items-center gap-2">
+        <Button onClick={() => refetch()} className="flex items-center gap-2">
           <Play className="w-4 h-4" /> Retry
         </Button>
       </div>
@@ -187,7 +188,7 @@ export default function FrontPage() {
   }
 
   const orphanApps = recentApps.filter(
-    app => app.status === 'draft' && !app.output_path && app.created_at < Date.now() - 300000
+    app => app.status === 'draft' && !app.output_path && app.created_at < nowMs - 300000
   );
 
   return (

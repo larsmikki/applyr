@@ -13,18 +13,18 @@ const { db } = vi.hoisted(() => {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
-  const schemaPath = path.join(process.cwd(), 'server', 'src', 'db', 'migrations', '001_schema.sql');
+  const schemaPath = path.join(process.cwd(), 'src', 'db', 'migrations', '001_schema.sql');
   db.exec(fs.readFileSync(schemaPath, 'utf-8'));
 
   return { db };
 });
 
-vi.mock('../../../server/src/db/connection', () => ({
+vi.mock('../../src/db/connection', () => ({
   getDb: () => db,
   initDb: vi.fn(),
 }));
 
-import { createApp } from '../../../server/src/app';
+import { createApp } from '../../src/app';
 
 const app = createApp();
 

@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { isSafeUrl } from '../util/url';
+import { isSafeUrl } from '../utils/url';
 
 interface ExtractResult {
   company: string;

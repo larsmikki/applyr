@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { extractFromUrl, extractFromText } from '../infrastructure/extractor';
-import { isSafeUrl } from '../util/url';
+import { isSafeUrl } from '../utils/url';
 
 const router = Router();
 

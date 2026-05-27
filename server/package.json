@@ -5,7 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && node -e \"require('fs').mkdirSync('dist/db/migrations',{recursive:true}); require('fs').readdirSync('src/db/migrations').forEach(f=>require('fs').copyFileSync('src/db/migrations/'+f,'dist/db/migrations/'+f));\""
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "tsc && node -e \"require('fs').mkdirSync('dist/db/migrations',{recursive:true}); require('fs').readdirSync('src/db/migrations').forEach(f=>require('fs').copyFileSync('src/db/migrations/'+f,'dist/db/migrations/'+f));\"",
+    "lint": "eslint ."
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
@@ -19,13 +22,17 @@
     "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@types/better-sqlite3": "^7.6.12",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.11.5",
     "@types/pdf-parse": "^1.1.5",
+    "eslint": "^9.39.4",
+    "globals": "^17.4.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.57.0"
   }
 }

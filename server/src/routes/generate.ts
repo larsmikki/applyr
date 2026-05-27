@@ -9,7 +9,7 @@ import { config } from '../config';
 import { createApplicationFolder, writeApplicationFile, writeJobDescription, writeOdtBuffer } from '../infrastructure/outputWriter';
 import { processOdtTemplate, odtToPdf } from '../infrastructure/odtTemplate';
 import { getVaultDir } from '../infrastructure/storage';
-import { withSSECapture } from '../util/sseCapture';
+import { withSSECapture } from '../utils/sseCapture';
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import SettingsProvider from '@/contexts/SettingsContext';
+import SettingsProvider from '@/contexts/SettingsProvider';
 import { ToastProvider } from '@/components/ui';
 
 import ErrorBoundary from '@/components/ErrorBoundary';

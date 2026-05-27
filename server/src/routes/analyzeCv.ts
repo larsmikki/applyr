@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { getDb } from '../db/connection';
 import { streamCVReview } from '../infrastructure/ai';
-import { withSSECapture } from '../util/sseCapture';
+import { withSSECapture } from '../utils/sseCapture';
 
 const router = Router();
 

@@ -99,11 +99,11 @@ export default function HistoryPage() {
   }, [filter, debouncedSearch, sort, page]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => void load());
   }, [load]);
 
   useEffect(() => {
-    setPage(1);
+    queueMicrotask(() => setPage(1));
   }, [debouncedSearch, filter, sort]);
 
   return (

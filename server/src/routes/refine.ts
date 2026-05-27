@@ -4,7 +4,7 @@ import { authMiddleware } from '../middleware/authMiddleware';
 import { getDb } from '../db/connection';
 import { streamRefinement } from '../infrastructure/ai';
 import { writeApplicationFile } from '../infrastructure/outputWriter';
-import { withSSECapture } from '../util/sseCapture';
+import { withSSECapture } from '../utils/sseCapture';
 
 const router = Router();
 

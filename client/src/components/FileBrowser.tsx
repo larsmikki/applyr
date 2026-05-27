@@ -27,7 +27,7 @@ export default function FileBrowser({ isOpen, onClose, onSelect, initialPath }: 
   };
 
   useEffect(() => {
-    if (isOpen) loadPath(initialPath);
+    if (isOpen) queueMicrotask(() => void loadPath(initialPath));
   }, [isOpen, initialPath]);
 
   if (!isOpen) return null;

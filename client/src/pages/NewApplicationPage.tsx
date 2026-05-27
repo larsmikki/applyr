@@ -35,7 +35,9 @@ export default function NewApplicationPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToast } = useToast();
-  const [step, setStep] = useState<Step>(1);
+  const initialApplicationId = searchParams.get('applicationId');
+  const initialStepParam = parseInt(searchParams.get('step') ?? '3', 10) as Step;
+  const [step, setStep] = useState<Step>(() => initialApplicationId && (initialStepParam === 2 || initialStepParam === 3) ? initialStepParam : 1);
 
   // Step 1
   const [urlInput, setUrlInput] = useState('');
@@ -45,7 +47,7 @@ export default function NewApplicationPage() {
   const [jobDescription, setJobDescription] = useState('');
   const [jobUrl, setJobUrl] = useState('');
   const [duplicate, setDuplicate] = useState<DuplicateCheckResult | null>(null);
-  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [applicationId, setApplicationId] = useState<string | null>(() => initialApplicationId);
   const [creating, setCreating] = useState(false);
   const [abandoning, setAbandoning] = useState(false);
   type OneClickStage = 'idle' | 'creating' | 'analyzing' | 'generating' | 'done' | 'error';
@@ -64,16 +66,6 @@ export default function NewApplicationPage() {
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [language, setLanguage] = useState('en');
   const generateStream = useStream();
-
-  useEffect(() => {
-    const paramAppId = searchParams.get('applicationId');
-    const paramStep = searchParams.get('step');
-    if (paramAppId) {
-      setApplicationId(paramAppId);
-      const s = parseInt(paramStep ?? '3', 10) as Step;
-      setStep(s === 2 || s === 3 ? s : 3);
-    }
-  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     getVaultDocuments('cv').then(cvDocs => {

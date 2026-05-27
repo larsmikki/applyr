@@ -265,14 +265,14 @@ export default function ApplicationDetailPage() {
           // 404 = no prep yet, that's fine
         }).finally(() => setPrepLoading(false));
       }
-    } catch (err) {
+    } catch {
       addToast('Failed to load application', 'error');
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [addToast, id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { queueMicrotask(() => void load()); }, [load]);
 
   useDocumentTitle(app ? `${app.company} — ${app.role}` : null);
 
@@ -281,7 +281,7 @@ export default function ApplicationDetailPage() {
     try {
       const updated = await updateApplication(id, { status: status as Application['status'] });
       setApp(updated);
-    } catch (err) {
+    } catch {
       addToast('Failed to update status', 'error');
     }
   };

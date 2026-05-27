@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useStream } from '@/hooks/useStream';
-import { getVaultDocuments, getCVReviewsByDoc, deleteCVReview, streamRewriteCV, patchCVRewriteResult, streamGapAnalysis, saveGapAnalysis, getGapAnalysisHistory, deleteGapAnalysis, saveCareerGuidance, getCareerGuidanceHistory, deleteCareerGuidance, getRecentApplicationRoles } from '@/api';
+import { getVaultDocuments, getCVReviewsByDoc, deleteCVReview, streamRewriteCV, patchCVRewriteResult, saveGapAnalysis, getGapAnalysisHistory, deleteGapAnalysis, saveCareerGuidance, getCareerGuidanceHistory, deleteCareerGuidance, getRecentApplicationRoles } from '@/api';
 import { VaultDocument, CVReview } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button, Input, Modal, Select, useToast } from '@/components/ui';
@@ -48,13 +48,13 @@ export default function AnalysisPage() {
   const [history, setHistory] = useState<CVReview[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
-  const { text, loading, done, error, start, reset, setText } = useStream();
+  const { text, loading, error, start, reset, setText } = useStream();
 
   // Gap analysis state
   const { text: gapText, loading: gapLoading, error: gapError, start: gapStart, reset: gapReset } = useStream();
 
   // Career guidance state
-  const { text: guidanceText, loading: guidanceLoading, done: guidanceDone, error: guidanceError, start: guidanceStart, reset: guidanceReset } = useStream();
+  const { text: guidanceText, loading: guidanceLoading, error: guidanceError, start: guidanceStart, reset: guidanceReset } = useStream();
   const [guidanceHistory, setGuidanceHistory] = React.useState<{ id: string; content: string; created_at: number }[]>([]);
   const [guidanceHistoryLoading, setGuidanceHistoryLoading] = React.useState(true);
   const [guidanceSaving, setGuidanceSaving] = React.useState(false);
@@ -194,15 +194,19 @@ export default function AnalysisPage() {
   }
 
   React.useEffect(() => {
-    fetchDocs();
-    fetchGapHistory();
-    fetchGuidanceHistory();
-    getRecentApplicationRoles().then(setRecentAppRoles).catch(() => {});
+    queueMicrotask(() => {
+      void fetchDocs();
+      void fetchGapHistory();
+      void fetchGuidanceHistory();
+      getRecentApplicationRoles().then(setRecentAppRoles).catch(() => {});
+    });
   }, []);
 
   React.useEffect(() => {
-    if (selectedDocId) fetchHistory(selectedDocId);
-    else setHistory([]);
+    queueMicrotask(() => {
+      if (selectedDocId) void fetchHistory(selectedDocId);
+      else setHistory([]);
+    });
   }, [selectedDocId]);
 
   async function handleGapAnalysis() {

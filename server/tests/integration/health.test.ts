@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
-import { getDb } from '../../../server/src/db/connection';
+import { getDb } from '../../src/db/connection';
 
 // Health route now probes the DB to verify liveness, so return a working stub
 // for the trivial `SELECT 1` query.
-vi.mock('../../../server/src/db/connection', () => ({
+vi.mock('../../src/db/connection', () => ({
   getDb: vi.fn(() => ({
     prepare: () => ({ get: () => ({ ok: 1 }) }),
   })),
@@ -12,7 +12,7 @@ vi.mock('../../../server/src/db/connection', () => ({
   closeDb: vi.fn(),
 }));
 
-import { createApp } from '../../../server/src/app';
+import { createApp } from '../../src/app';
 
 const app = createApp();
 

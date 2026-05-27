@@ -34,3 +34,9 @@ coverage/
 .gstack/
 .codex/
 .code-review-graph/
+
+# === Fleet structure baseline (shared/STRUCTURE.md §7) ===
+*.db
+cache/
+temp/
+test_album/

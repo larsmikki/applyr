@@ -4,7 +4,7 @@ import { getDb } from '../db/connection';
 import { streamAnalysis } from '../infrastructure/ai';
 import { config } from '../config';
 import { createApplicationFolder, writeJobDescription, writeAnalysis } from '../infrastructure/outputWriter';
-import { withSSECapture } from '../util/sseCapture';
+import { withSSECapture } from '../utils/sseCapture';
 
 const router = Router();
 
