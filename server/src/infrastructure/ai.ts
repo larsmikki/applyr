@@ -284,17 +284,20 @@ export async function streamRefinement(
   instruction: string,
   res: Response,
   signal?: AbortSignal,
-  onPrompts?: (system: string, user: string) => void
+  onPrompts?: (system: string, user: string) => void,
+  cvText?: string
 ): Promise<void> {
   await withSSEStream(res, signal, async (send) => {
     const { client, model, temperatureOverride } = getOpenAIClient();
 
     const systemPrompt = getEffectivePrompts(getDb()).refinement;
 
+    const cvSection = cvText ? `\n\n## Candidate CV\n${cvText}` : '';
+
     const userPrompt = `Please revise this cover letter according to the instructions.
 
 ## Current Cover Letter
-${currentLetter}
+${currentLetter}${cvSection}
 
 ## Revision Instructions
 ${instruction}

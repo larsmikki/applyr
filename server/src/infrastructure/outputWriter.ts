@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 function sanitizeFolderName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9\-_ ]/g, '').replace(/\s+/g, '-').trim();
+  return name.replace(/[^\p{L}\p{N}\-_ ]/gu, '').replace(/\s+/g, '-').trim();
 }
 
 export function createApplicationFolder(

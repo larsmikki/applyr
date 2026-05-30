@@ -358,7 +358,7 @@ export default function ApplicationDetailPage() {
 
   const handleRefine = () => {
     if (!id || !refineInstruction.trim()) return;
-    refineStream.start('/refine', { applicationId: id, instruction: refineInstruction }, () => {
+    refineStream.start('/refine', { applicationId: id, instruction: refineInstruction, cvDocumentId: selectedCvId || undefined }, () => {
       addToast('Refinement complete', 'success');
       load(); // reload to get new version
     });

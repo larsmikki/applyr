@@ -263,15 +263,9 @@ export default function FrontPage() {
               <div className="space-y-2">
                 {companies.map(({ company, count, latestStatus }) => {
                   const max = companies[0].count;
-                  const dotColor = STAGE_COLORS[latestStatus] || '#9ca3af';
                   return (
                     <div key={company} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-700 dark:text-gray-300 w-32 truncate flex-shrink-0 flex items-center gap-1.5">
-                        <span
-                          className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style={{ background: dotColor }}
-                          title={`Latest: ${latestStatus}`}
-                        />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 w-32 truncate flex-shrink-0">
                         {company}
                       </span>
                       <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2">

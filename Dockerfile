@@ -1,7 +1,9 @@
 # Stage 1: Build client and server
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
 
 COPY package*.json ./
 COPY client/package*.json ./client/
@@ -12,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production image
-FROM node:20-alpine
+FROM node:26-alpine
 
 WORKDIR /app
 
@@ -21,7 +23,9 @@ RUN apk add --no-cache libreoffice ttf-dejavu ttf-liberation
 
 COPY package*.json ./
 COPY server/package*.json ./server/
-RUN npm ci --omit=dev -w server
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+  && npm ci --omit=dev -w server \
+  && apk del .build-deps
 
 COPY --from=builder /app/server/dist ./server/dist
 COPY --from=builder /app/client/dist ./client/dist
