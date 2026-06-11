@@ -5,7 +5,7 @@ import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 
-const BEST_PRACTICES_PATH = path.join(__dirname, '../../../resources/APPLICATION-WRITING-PROMPT.md');
+const BEST_PRACTICES_PATH = path.join(__dirname, '../../../resources/application-writing-prompt.md');
 
 router.get('/', authMiddleware, (_req, res) => {
   try {

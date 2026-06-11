@@ -7,7 +7,7 @@ import { getEffectivePrompts } from '../constants/prompts';
 
 function loadBestPractices(): string {
   try {
-    const filePath = path.join(__dirname, '../../../resources/APPLICATION-WRITING-PROMPT.md');
+    const filePath = path.join(__dirname, '../../../resources/application-writing-prompt.md');
     return fs.readFileSync(filePath, 'utf-8');
   } catch {
     return '';

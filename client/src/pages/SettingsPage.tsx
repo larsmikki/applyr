@@ -645,7 +645,7 @@ export default function SettingsPage() {
               {/* ── Provider toggle ───────────────────────────────────────── */}
               <div>
                 <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Provider</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* OpenAI card */}
                   <button
                     type="button"
@@ -1401,7 +1401,7 @@ export default function SettingsPage() {
             </div>
 
             {showSnippetForm && (
-              <div style={{ background: theme.surface2, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '16px', marginBottom: '16px' }} className="space-y-3">
+              <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '16px', marginBottom: '16px' }} className="space-y-3">
                 <div>
                   <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Title</label>
                   <Input type="text" placeholder="e.g. Leadership Experience" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
@@ -1431,7 +1431,7 @@ export default function SettingsPage() {
             ) : (
               <div className="space-y-3">
                 {snippets.map(snippet => (
-                  <div key={snippet.id} style={{ background: theme.surface2, border: `1px solid ${theme.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                  <div key={snippet.id} style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '12px', overflow: 'hidden' }}>
                     {editingId === snippet.id ? (
                       <div className="p-4 space-y-3">
                         <Input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="font-medium" />

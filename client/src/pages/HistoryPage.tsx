@@ -107,7 +107,7 @@ export default function HistoryPage() {
   }, [debouncedSearch, filter, sort]);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       <h1 className="text-2xl font-extrabold tracking-tight mb-6" style={{ color: theme.text }}>History</h1>
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6 space-y-3">
@@ -126,7 +126,7 @@ export default function HistoryPage() {
             </button>
           ))}
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
@@ -136,7 +136,7 @@ export default function HistoryPage() {
               onChange={e => setSearch(e.target.value)}
               className="pl-9" />
           </div>
-          <Select value={sort} onChange={e => setSort(e.target.value)} className="w-48">
+          <Select value={sort} onChange={e => setSort(e.target.value)} className="w-full sm:w-48">
             <option value="created_at_desc">Newest first</option>
             <option value="created_at_asc">Oldest first</option>
             <option value="company_asc">Company A-Z</option>
@@ -185,7 +185,7 @@ export default function HistoryPage() {
                     {app.fit_score !== undefined && app.fit_score !== null && (
                       <FitScoreRing score={app.fit_score} size={32} />
                     )}
-                    <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 w-24 justify-end">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:flex items-center gap-1 w-24 justify-end">
                       <Calendar className="w-3 h-3" />
                       {new Date(app.created_at).toLocaleDateString()}
                     </span>

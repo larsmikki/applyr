@@ -360,7 +360,7 @@ export default function AnalysisPage() {
   const reviewDone = !!text && !loading;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>Analysis</h1>
         <p style={{ color: theme.text2 }}>Evaluate your CV, identify gaps, and discover roles where you'll shine.</p>

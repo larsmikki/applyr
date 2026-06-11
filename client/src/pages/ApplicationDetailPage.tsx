@@ -90,7 +90,7 @@ function ApplicationTimeline({ app }: { app: Application }) {
               </div>
               <div className="mt-2 pr-2">
                 <p
-                  className="text-sm font-medium"
+                  className="text-xs sm:text-sm font-medium truncate"
                   style={{
                     color: isCurrent ? accent : reached ? theme.text : theme.text2,
                   }}
@@ -509,7 +509,7 @@ export default function ApplicationDetailPage() {
 
   return (
     <>
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       {/* Breadcrumb */}
       <div className="mb-3 flex items-center gap-2 text-xs">
         <button
@@ -525,7 +525,7 @@ export default function ApplicationDetailPage() {
 
       {/* Header card */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
-        <div className="flex items-start gap-4">
+        <div className="flex flex-wrap items-start gap-4">
           <div
             className="rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold"
             style={{
@@ -537,7 +537,7 @@ export default function ApplicationDetailPage() {
             {app.company.charAt(0).toUpperCase()}
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 basis-48">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-extrabold tracking-tight truncate" style={{ color: theme.text }}>
                 {app.company}
@@ -561,7 +561,7 @@ export default function ApplicationDetailPage() {
             {app.job_url && (
               <a
                 href={app.job_url} target="_blank" rel="noopener noreferrer"
-                className="text-xs hover:underline mt-1 inline-flex items-center gap-1 truncate max-w-md"
+                className="text-xs hover:underline mt-1 inline-flex items-center gap-1 truncate max-w-full sm:max-w-md"
                 style={{ color: theme.accent }}
               >
                 <LinkIcon className="w-3 h-3 flex-shrink-0" />
@@ -590,7 +590,7 @@ export default function ApplicationDetailPage() {
 
       {/* Status selector (inline, clean) */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
-        <div className="flex items-center gap-2 px-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 px-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
           {([
             { id: 'cover_letter', label: 'Cover Letter', icon: FileText },
             { id: 'job_description', label: 'Job Description', icon: FileText },
@@ -603,7 +603,7 @@ export default function ApplicationDetailPage() {
             <button
               key={tabId}
               onClick={() => setTab(tabId)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap flex-shrink-0 ${
                 tab === tabId
                   ? 'border-accent text-accent dark:text-accent'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
@@ -626,7 +626,7 @@ export default function ApplicationDetailPage() {
           </p>
         )}
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Cover Letter Tab */}
           {tab === 'cover_letter' && (
             <div className="space-y-4">
@@ -652,16 +652,16 @@ export default function ApplicationDetailPage() {
                         ))}
                       </Select>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Button
                         onClick={() => setRefineOpen(v => !v)}
-                        className="flex items-center gap-2 text-sm">
+                        className="flex items-center gap-2 text-sm whitespace-nowrap">
                         <Wand2 className="w-4 h-4" /> Refine
                       </Button>
                       <Button
                         onClick={handleRegenerateOdt}
                         disabled={regeneratingOdt}
-                        className="flex items-center gap-2 text-sm"
+                        className="flex items-center gap-2 text-sm whitespace-nowrap"
                         title="Re-create ODT, PDF and copy attachments from the latest cover letter version"
                       >
                         {regeneratingOdt

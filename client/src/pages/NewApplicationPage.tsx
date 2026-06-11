@@ -233,7 +233,7 @@ export default function NewApplicationPage() {
   const canAnalyzeAndGenerate = canCreateApplication && Boolean(selectedCvId);
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>New Application</h1>
         <p className="text-sm mt-0.5" style={{ color: theme.text2 }}>Analyze a job fit and generate a tailored cover letter.</p>
@@ -257,12 +257,12 @@ export default function NewApplicationPage() {
                 }`}>
                   {isComplete ? '✓' : num}
                 </div>
-                <span className={`text-sm font-medium ${isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span className={`text-sm font-medium ${isActive ? 'text-gray-900 dark:text-gray-100' : 'hidden sm:inline text-gray-400 dark:text-gray-500'}`}>
                   {label}
                 </span>
               </div>
               {idx < stepLabels.length - 1 && (
-                <div className={`w-12 h-0.5 mx-3 ${step > num ? 'bg-accent' : 'bg-gray-200 dark:bg-gray-700'}`} />
+                <div className={`w-6 sm:w-12 h-0.5 mx-2 sm:mx-3 ${step > num ? 'bg-accent' : 'bg-gray-200 dark:bg-gray-700'}`} />
               )}
             </div>
           );
@@ -311,7 +311,7 @@ export default function NewApplicationPage() {
               Paste Job Description
             </h2>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs uppercase tracking-wider font-semibold text-text2 mb-1">Company</label>
                 <Input
@@ -442,7 +442,7 @@ export default function NewApplicationPage() {
             )}
           </div>
 
-          <div className="flex justify-between">
+          <div className="flex flex-wrap justify-between gap-2">
             <div className="flex gap-2">
               <Button onClick={() => setStep(1)} className="flex items-center gap-2">
                 <ChevronLeft className="w-4 h-4" /> Back

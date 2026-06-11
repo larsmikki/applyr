@@ -111,7 +111,7 @@ function AppRow({ app }: { app: Application }) {
         {app.fit_score !== undefined && app.fit_score !== null && (
           <FitScoreRing score={app.fit_score} size={32} />
         )}
-        <span className="text-xs text-gray-400 dark:text-gray-500 w-20 text-right">
+        <span className="text-xs text-gray-400 dark:text-gray-500 w-20 text-right hidden sm:block">
           {new Date(app.created_at).toLocaleDateString()}
         </span>
       </div>
@@ -192,8 +192,8 @@ export default function FrontPage() {
   );
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <p className="text-xs text-gray-400 dark:text-gray-500 font-medium mb-1">{weekLabel()}</p>
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: theme.text }}>{greeting()}.</h1>
@@ -246,7 +246,7 @@ export default function FrontPage() {
       </div>
 
       {/* Pipeline + Where you're applying */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {summary && (
           <div>
             <SectionLabel title="Pipeline" />
